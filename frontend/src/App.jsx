@@ -1,121 +1,64 @@
 import { useState } from 'react'
-import heroImg from './assets/hero.png'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
+import CreateTrip from './components/CreateTrip'
+import JoinTrip from './components/JoinTrip'
 import './App.css'
 
 function App() {
-  const [count, setCount] = useState(0)
+  // 'landing' | 'create' | 'join'
+  const [screen, setScreen] = useState('landing')
 
   return (
-    <>
-      <section id="center">
-        <div className="hero">
-          <img src={heroImg} className="base" width="170" height="179" alt="" />
-          <img src={reactLogo} className="framework" alt="React logo" />
-          <img src={viteLogo} className="vite" alt="Vite logo" />
-        </div>
-        <div>
-          <h1>Get started</h1>
-          <p>
-            Edit <code>src/App.jsx</code> and save to test <code>HMR</code>
+    <div className="app-shell">
+      {screen === 'landing' && (
+        <div className="landing" id="landing-screen">
+          {/* Logo */}
+          <div className="landing-logo" aria-hidden="true">🧭</div>
+
+          <h1 className="landing-brand">Traverse</h1>
+          <p className="landing-tagline">
+            Your AI-powered travel companion. Plan, track, adapt, and
+            visualize your journey — together or solo.
           </p>
-        </div>
-        <button
-          type="button"
-          className="counter"
-          onClick={() => setCount((count) => count + 1)}
-        >
-          Count is {count}
-        </button>
-      </section>
 
-      <div className="ticks"></div>
+          {/* Action cards */}
+          <div className="landing-actions">
+            <button
+              className="landing-card"
+              onClick={() => setScreen('create')}
+              id="go-create-trip"
+            >
+              <span className="landing-card-icon">🗺️</span>
+              <span className="landing-card-title">Create Trip</span>
+              <span className="landing-card-desc">
+                Start a new trip or outing and invite your crew
+              </span>
+            </button>
 
-      <section id="next-steps">
-        <div id="docs">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#documentation-icon"></use>
-          </svg>
-          <h2>Documentation</h2>
-          <p>Your questions, answered</p>
-          <ul>
-            <li>
-              <a href="https://vite.dev/" target="_blank">
-                <img className="logo" src={viteLogo} alt="" />
-                Explore Vite
-              </a>
-            </li>
-            <li>
-              <a href="https://react.dev/" target="_blank">
-                <img className="button-icon" src={reactLogo} alt="" />
-                Learn more
-              </a>
-            </li>
-          </ul>
-        </div>
-        <div id="social">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#social-icon"></use>
-          </svg>
-          <h2>Connect with us</h2>
-          <p>Join the Vite community</p>
-          <ul>
-            <li>
-              <a href="https://github.com/vitejs/vite" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#github-icon"></use>
-                </svg>
-                GitHub
-              </a>
-            </li>
-            <li>
-              <a href="https://chat.vite.dev/" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#discord-icon"></use>
-                </svg>
-                Discord
-              </a>
-            </li>
-            <li>
-              <a href="https://x.com/vite_js" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#x-icon"></use>
-                </svg>
-                X.com
-              </a>
-            </li>
-            <li>
-              <a href="https://bsky.app/profile/vite.dev" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#bluesky-icon"></use>
-                </svg>
-                Bluesky
-              </a>
-            </li>
-          </ul>
-        </div>
-      </section>
+            <button
+              className="landing-card"
+              onClick={() => setScreen('join')}
+              id="go-join-trip"
+            >
+              <span className="landing-card-icon">🔗</span>
+              <span className="landing-card-title">Join Trip</span>
+              <span className="landing-card-desc">
+                Enter a room code to hop into a group trip
+              </span>
+            </button>
+          </div>
 
-      <div className="ticks"></div>
-      <section id="spacer"></section>
-    </>
+          <p className="landing-footer">Plan → Generate → Travel → Adapt → Reward</p>
+        </div>
+      )}
+
+      {screen === 'create' && (
+        <CreateTrip onBack={() => setScreen('landing')} />
+      )}
+
+      {screen === 'join' && (
+        <JoinTrip onBack={() => setScreen('landing')} />
+      )}
+    </div>
   )
 }
 
