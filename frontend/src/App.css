@@ -1,0 +1,164 @@
+/* ============================================================
+   App — Layout & Landing Page Styles
+   ============================================================ */
+
+/* ---- App shell ---- */
+.app-shell {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100svh;
+  padding: 40px 24px;
+  position: relative;
+  overflow: hidden;
+}
+
+/* ---- Ambient background glow ---- */
+.app-shell::before {
+  content: '';
+  position: fixed;
+  top: -30%;
+  left: -10%;
+  width: 60%;
+  height: 60%;
+  background: radial-gradient(circle, rgba(99, 102, 241, 0.08) 0%, transparent 70%);
+  pointer-events: none;
+  z-index: 0;
+}
+.app-shell::after {
+  content: '';
+  position: fixed;
+  bottom: -20%;
+  right: -10%;
+  width: 50%;
+  height: 50%;
+  background: radial-gradient(circle, rgba(168, 85, 247, 0.06) 0%, transparent 70%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.app-shell > * {
+  position: relative;
+  z-index: 1;
+}
+
+/* ============ Landing screen ============ */
+.landing {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  text-align: center;
+  max-width: 580px;
+  animation: land-fadeIn 0.6s ease-out;
+}
+
+@keyframes land-fadeIn {
+  from { opacity: 0; transform: translateY(30px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* Logo mark */
+.landing-logo {
+  width: 72px;
+  height: 72px;
+  border-radius: 18px;
+  background: linear-gradient(135deg, var(--t-accent), var(--t-accent-alt));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2rem;
+  box-shadow: 0 6px 28px var(--t-accent-glow);
+  margin-bottom: 8px;
+  animation: land-float 4s ease-in-out infinite;
+}
+
+@keyframes land-float {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-8px); }
+}
+
+.landing-brand {
+  font-size: 3rem;
+  font-weight: 800;
+  background: linear-gradient(135deg, #e4e5f1 30%, var(--t-accent) 60%, var(--t-accent-alt));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  letter-spacing: -1px;
+  line-height: 1.1;
+}
+
+.landing-tagline {
+  font-size: 1.1rem;
+  color: var(--t-text-muted);
+  max-width: 420px;
+  line-height: 1.6;
+}
+
+/* Action cards */
+.landing-actions {
+  display: flex;
+  gap: 16px;
+  margin-top: 28px;
+  width: 100%;
+  max-width: 440px;
+}
+
+.landing-card {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 28px 20px;
+  background: var(--t-surface);
+  border: 1.5px solid var(--t-border);
+  border-radius: 16px;
+  cursor: pointer;
+  transition: border-color 0.25s, box-shadow 0.3s, transform 0.2s;
+  user-select: none;
+  text-align: center;
+}
+.landing-card:hover {
+  border-color: var(--t-accent);
+  box-shadow: 0 0 0 3px var(--t-accent-glow), var(--t-shadow);
+  transform: translateY(-3px);
+}
+.landing-card:active {
+  transform: translateY(0) scale(0.98);
+}
+
+.landing-card-icon {
+  font-size: 2.2rem;
+  margin-bottom: 4px;
+}
+.landing-card-title {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--t-text);
+}
+.landing-card-desc {
+  font-size: 0.82rem;
+  color: var(--t-text-muted);
+  line-height: 1.45;
+}
+
+/* Subtle bottom tagline */
+.landing-footer {
+  margin-top: 40px;
+  font-size: 0.78rem;
+  color: var(--t-text-muted);
+  opacity: 0.5;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
+/* ---- Responsive ---- */
+@media (max-width: 500px) {
+  .landing-brand { font-size: 2.2rem; }
+  .landing-tagline { font-size: 0.95rem; }
+  .landing-actions { flex-direction: column; }
+  .landing-card { padding: 22px 18px; }
+}

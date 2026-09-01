@@ -1,0 +1,267 @@
+/* ===== Join Trip — Component Styles ===== */
+
+.jt-form {
+  max-width: 480px;
+  width: 100%;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+  animation: jt-fadeUp 0.5s ease-out;
+}
+
+@keyframes jt-fadeUp {
+  from { opacity: 0; transform: translateY(24px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ---- Back button ---- */
+.jt-back {
+  align-self: flex-start;
+  background: none;
+  border: none;
+  color: var(--t-text-muted);
+  font-size: 0.9rem;
+  cursor: pointer;
+  padding: 4px 0;
+  transition: color 0.2s;
+}
+.jt-back:hover { color: var(--t-text); }
+
+/* ---- Title ---- */
+.jt-title {
+  font-size: 2.2rem;
+  font-weight: 700;
+  background: linear-gradient(135deg, var(--t-accent-alt), var(--t-accent));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin: 0;
+  line-height: 1.15;
+}
+.jt-subtitle {
+  color: var(--t-text-muted);
+  margin-top: -8px;
+}
+
+/* ---- Field wrapper ---- */
+.jt-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.jt-label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--t-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+}
+
+/* ---- Text input ---- */
+.jt-input {
+  background: var(--t-surface);
+  border: 1.5px solid var(--t-border);
+  border-radius: 10px;
+  padding: 12px 14px;
+  font-size: 1rem;
+  color: var(--t-text);
+  font-family: inherit;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  outline: none;
+}
+.jt-input:focus {
+  border-color: var(--t-accent);
+  box-shadow: 0 0 0 3px var(--t-accent-glow);
+}
+
+/* ---- Room code — large monospaced input ---- */
+.jt-code-field {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+.jt-code-input {
+  background: var(--t-surface);
+  border: 2px solid var(--t-border);
+  border-radius: 14px;
+  padding: 18px 24px;
+  font-size: 2.2rem;
+  font-weight: 800;
+  letter-spacing: 10px;
+  text-align: center;
+  color: var(--t-text);
+  font-family: inherit;
+  width: 100%;
+  max-width: 320px;
+  box-sizing: border-box;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  outline: none;
+  text-transform: uppercase;
+}
+.jt-code-input::placeholder {
+  color: var(--t-text-muted);
+  opacity: 0.4;
+  letter-spacing: 4px;
+  font-weight: 400;
+  font-size: 1.1rem;
+}
+.jt-code-input:focus {
+  border-color: var(--t-accent);
+  box-shadow: 0 0 0 4px var(--t-accent-glow);
+}
+
+/* ---- Buttons ---- */
+.jt-btn {
+  padding: 14px 28px;
+  border-radius: 12px;
+  font-size: 1.05rem;
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+  transition: transform 0.15s, box-shadow 0.25s, opacity 0.2s;
+  font-family: inherit;
+}
+.jt-btn:active { transform: scale(0.97); }
+.jt-btn:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
+.jt-btn--primary {
+  background: linear-gradient(135deg, var(--t-accent-alt), var(--t-accent));
+  color: #fff;
+  box-shadow: 0 4px 20px var(--t-accent-glow);
+}
+.jt-btn--primary:hover:not(:disabled) {
+  box-shadow: 0 6px 28px var(--t-accent-glow);
+  transform: translateY(-1px);
+}
+
+.jt-btn--outline {
+  background: transparent;
+  border: 1.5px solid var(--t-border);
+  color: var(--t-text);
+}
+.jt-btn--outline:hover {
+  border-color: var(--t-accent);
+  color: var(--t-accent);
+}
+
+/* ---- Spinner ---- */
+.jt-spinner-wrap {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+.jt-spinner {
+  width: 18px;
+  height: 18px;
+  border: 2.5px solid rgba(255, 255, 255, 0.25);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: jt-spin 0.7s linear infinite;
+}
+@keyframes jt-spin {
+  to { transform: rotate(360deg); }
+}
+
+/* ---- Error banner ---- */
+.jt-error {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 14px 16px;
+  border-radius: 10px;
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  color: #fca5a5;
+  font-size: 0.9rem;
+  animation: jt-shake 0.35s ease;
+}
+.jt-error strong {
+  color: #f87171;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+.jt-error p { margin: 2px 0 0; }
+.jt-error-icon { font-size: 1.25rem; flex-shrink: 0; }
+
+@keyframes jt-shake {
+  0%, 100% { transform: translateX(0); }
+  15% { transform: translateX(-6px); }
+  30% { transform: translateX(5px); }
+  45% { transform: translateX(-4px); }
+  60% { transform: translateX(3px); }
+  75% { transform: translateX(-2px); }
+}
+
+/* ============ Success state ============ */
+.jt-success {
+  max-width: 460px;
+  width: 100%;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  text-align: center;
+  animation: jt-fadeUp 0.5s ease-out;
+}
+.jt-success-icon {
+  animation: jt-pop 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+@keyframes jt-pop {
+  from { transform: scale(0); opacity: 0; }
+  to   { transform: scale(1); opacity: 1; }
+}
+.jt-success-title {
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: var(--t-text);
+  margin: 0;
+}
+.jt-success-sub {
+  color: var(--t-text-muted);
+  font-size: 1rem;
+}
+.jt-success-sub strong { color: var(--t-text); }
+
+/* Detail card */
+.jt-detail-card {
+  width: 100%;
+  padding: 20px 24px;
+  border-radius: 14px;
+  background: var(--t-surface);
+  border: 1.5px solid var(--t-border);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  box-shadow: var(--t-shadow);
+}
+.jt-detail-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.jt-detail-label {
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  color: var(--t-text-muted);
+}
+.jt-detail-value {
+  font-family: ui-monospace, Consolas, monospace;
+  font-size: 0.95rem;
+  color: var(--t-accent);
+  font-weight: 600;
+}
+
+/* ---- Responsive ---- */
+@media (max-width: 540px) {
+  .jt-title { font-size: 1.7rem; }
+  .jt-code-input { font-size: 1.6rem; letter-spacing: 6px; }
+}

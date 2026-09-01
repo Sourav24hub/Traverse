@@ -1,0 +1,319 @@
+/* ===== Create Trip — Component Styles ===== */
+
+.ct-form {
+  max-width: 540px;
+  width: 100%;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  animation: ct-fadeUp 0.5s ease-out;
+}
+
+@keyframes ct-fadeUp {
+  from { opacity: 0; transform: translateY(24px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ---- Back button ---- */
+.ct-back {
+  align-self: flex-start;
+  background: none;
+  border: none;
+  color: var(--t-text-muted);
+  font-size: 0.9rem;
+  cursor: pointer;
+  padding: 4px 0;
+  transition: color 0.2s;
+}
+.ct-back:hover { color: var(--t-text); }
+
+/* ---- Title ---- */
+.ct-title {
+  font-size: 2.2rem;
+  font-weight: 700;
+  background: linear-gradient(135deg, var(--t-accent), var(--t-accent-alt));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin: 0;
+  line-height: 1.15;
+}
+.ct-subtitle {
+  color: var(--t-text-muted);
+  margin-top: -8px;
+}
+
+/* ---- Field wrapper ---- */
+.ct-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  border: none;
+  padding: 0;
+  margin: 0;
+}
+.ct-field legend,
+.ct-label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--t-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+}
+.ct-label small {
+  text-transform: none;
+  font-weight: 400;
+  opacity: 0.7;
+}
+
+/* ---- Text inputs ---- */
+.ct-input,
+.ct-textarea {
+  background: var(--t-surface);
+  border: 1.5px solid var(--t-border);
+  border-radius: 10px;
+  padding: 12px 14px;
+  font-size: 1rem;
+  color: var(--t-text);
+  font-family: inherit;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  outline: none;
+}
+.ct-input:focus,
+.ct-textarea:focus {
+  border-color: var(--t-accent);
+  box-shadow: 0 0 0 3px var(--t-accent-glow);
+}
+.ct-textarea {
+  resize: vertical;
+  min-height: 80px;
+}
+
+/* ---- Row for side-by-side fields ---- */
+.ct-row {
+  display: flex;
+  gap: 16px;
+}
+.ct-row .ct-field { flex: 1; }
+
+/* ---- Toggle cards (type & mode selectors) ---- */
+.ct-toggle-group {
+  display: flex;
+  gap: 12px;
+}
+.ct-toggle {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 16px;
+  background: var(--t-surface);
+  border: 1.5px solid var(--t-border);
+  border-radius: 12px;
+  cursor: pointer;
+  transition: border-color 0.25s, box-shadow 0.25s, transform 0.15s;
+  user-select: none;
+}
+.ct-toggle input { display: none; }
+.ct-toggle span { display: flex; flex-direction: column; }
+.ct-toggle strong {
+  color: var(--t-text);
+  font-size: 0.95rem;
+}
+.ct-toggle small {
+  color: var(--t-text-muted);
+  font-size: 0.78rem;
+}
+.ct-toggle-icon {
+  font-size: 1.5rem;
+  flex-shrink: 0;
+}
+.ct-toggle:hover {
+  border-color: var(--t-accent-dim);
+  transform: translateY(-1px);
+}
+.ct-toggle--active {
+  border-color: var(--t-accent);
+  box-shadow: 0 0 0 3px var(--t-accent-glow), var(--t-shadow);
+  background: linear-gradient(
+    135deg,
+    rgba(99, 102, 241, 0.08),
+    rgba(168, 85, 247, 0.06)
+  );
+}
+
+/* ---- Buttons ---- */
+.ct-btn {
+  padding: 14px 28px;
+  border-radius: 12px;
+  font-size: 1.05rem;
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+  transition: transform 0.15s, box-shadow 0.25s, opacity 0.2s;
+  font-family: inherit;
+}
+.ct-btn:active { transform: scale(0.97); }
+.ct-btn:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
+.ct-btn--primary {
+  background: linear-gradient(135deg, var(--t-accent), var(--t-accent-alt));
+  color: #fff;
+  box-shadow: 0 4px 20px var(--t-accent-glow);
+}
+.ct-btn--primary:hover:not(:disabled) {
+  box-shadow: 0 6px 28px var(--t-accent-glow);
+  transform: translateY(-1px);
+}
+
+.ct-btn--outline {
+  background: transparent;
+  border: 1.5px solid var(--t-border);
+  color: var(--t-text);
+}
+.ct-btn--outline:hover {
+  border-color: var(--t-accent);
+  color: var(--t-accent);
+}
+
+/* ---- Spinner ---- */
+.ct-spinner-wrap {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+.ct-spinner {
+  width: 18px;
+  height: 18px;
+  border: 2.5px solid rgba(255, 255, 255, 0.25);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: ct-spin 0.7s linear infinite;
+}
+@keyframes ct-spin {
+  to { transform: rotate(360deg); }
+}
+
+/* ---- Error banner ---- */
+.ct-error {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 14px 16px;
+  border-radius: 10px;
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  color: #fca5a5;
+  font-size: 0.9rem;
+  animation: ct-shake 0.35s ease;
+}
+.ct-error strong {
+  color: #f87171;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+.ct-error p { margin: 2px 0 0; }
+.ct-error-icon { font-size: 1.25rem; flex-shrink: 0; }
+
+@keyframes ct-shake {
+  0%, 100% { transform: translateX(0); }
+  15% { transform: translateX(-6px); }
+  30% { transform: translateX(5px); }
+  45% { transform: translateX(-4px); }
+  60% { transform: translateX(3px); }
+  75% { transform: translateX(-2px); }
+}
+
+/* ============ Success state ============ */
+.ct-success {
+  max-width: 480px;
+  width: 100%;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  text-align: center;
+  animation: ct-fadeUp 0.5s ease-out;
+}
+.ct-success-icon {
+  animation: ct-pop 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+@keyframes ct-pop {
+  from { transform: scale(0); opacity: 0; }
+  to   { transform: scale(1); opacity: 1; }
+}
+.ct-success-title {
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: var(--t-text);
+  margin: 0;
+}
+.ct-success-sub {
+  color: var(--t-text-muted);
+  font-size: 1rem;
+}
+.ct-success-sub strong { color: var(--t-text); }
+
+/* Room code card */
+.ct-room-code-card {
+  width: 100%;
+  padding: 28px 24px;
+  border-radius: 16px;
+  background: var(--t-surface);
+  border: 1.5px solid var(--t-border);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  box-shadow: var(--t-shadow);
+}
+.ct-room-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  color: var(--t-text-muted);
+}
+.ct-room-value {
+  font-size: 2.8rem;
+  font-weight: 800;
+  letter-spacing: 8px;
+  background: linear-gradient(135deg, var(--t-accent), var(--t-accent-alt));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  border: none;
+  cursor: pointer;
+  font-family: inherit;
+  padding: 0;
+  position: relative;
+  transition: transform 0.15s;
+}
+.ct-room-value:hover { transform: scale(1.04); }
+.ct-copy-hint {
+  display: block;
+  font-size: 0.7rem;
+  font-weight: 500;
+  -webkit-text-fill-color: var(--t-text-muted);
+  letter-spacing: 0;
+  margin-top: 2px;
+}
+.ct-room-help {
+  color: var(--t-text-muted);
+  font-size: 0.85rem;
+  margin-top: 4px;
+}
+
+/* ---- Responsive ---- */
+@media (max-width: 540px) {
+  .ct-toggle-group { flex-direction: column; }
+  .ct-row { flex-direction: column; }
+  .ct-title { font-size: 1.7rem; }
+  .ct-room-value { font-size: 2rem; letter-spacing: 5px; }
+}

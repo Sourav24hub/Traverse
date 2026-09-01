@@ -1,0 +1,72 @@
+/* ============================================================
+   Traverse — Global Design System
+   ============================================================ */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
+:root {
+  /* Traverse palette — dark mode first */
+  --t-bg:           #0c0d14;
+  --t-bg-alt:       #12131c;
+  --t-surface:      #181a25;
+  --t-surface-alt:  #1e2030;
+  --t-border:       #2a2d3e;
+  --t-text:         #e4e5f1;
+  --t-text-muted:   #8b8ea5;
+  --t-accent:       #6366f1;
+  --t-accent-alt:   #a855f7;
+  --t-accent-dim:   rgba(99, 102, 241, 0.4);
+  --t-accent-glow:  rgba(99, 102, 241, 0.2);
+  --t-shadow:       0 8px 32px rgba(0, 0, 0, 0.35);
+  --t-shadow-lg:    0 12px 48px rgba(0, 0, 0, 0.5);
+
+  /* Fonts */
+  --t-sans: 'Inter', system-ui, -apple-system, sans-serif;
+  --t-mono: ui-monospace, 'Cascadia Code', Consolas, monospace;
+
+  font-family: var(--t-sans);
+  font-size: 16px;
+  line-height: 1.55;
+  color: var(--t-text);
+  background: var(--t-bg);
+  color-scheme: dark;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ---- Reset ---- */
+*, *::before, *::after { box-sizing: border-box; }
+body { margin: 0; }
+
+#root {
+  min-height: 100svh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ---- Typography ---- */
+h1, h2, h3 {
+  font-family: var(--t-sans);
+  color: var(--t-text);
+  font-weight: 700;
+  margin: 0;
+}
+
+p {
+  margin: 0;
+}
+
+/* ---- Scrollbar ---- */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb {
+  background: var(--t-border);
+  border-radius: 3px;
+}
+
+/* ---- Selection ---- */
+::selection {
+  background: var(--t-accent-dim);
+  color: #fff;
+}
