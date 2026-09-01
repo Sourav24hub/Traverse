@@ -1,85 +1,88 @@
 /**
  * ============================================================
- *  MOCK API — Swap these functions for real fetch() calls
- *  when the backend is ready. The request/response shapes
- *  match PROJECT_SPEC.md §9.1 exactly.
+ *  API client — real fetch() calls to the Traverse backend.
+ *
+ *  In dev, Vite proxies /api/* → http://localhost:3001
+ *  (configured in vite.config.js).
+ *
+ *  The request/response shapes match PROJECT_SPEC.md §9.1,
+ *  verified against backend/src/routes/trips.ts.
  * ============================================================
  */
 
-const MOCK_DELAY_MS = 1200;
+const API_BASE = '/api';
 
 /**
  * POST /api/trips — create a new trip
  *
  * Request : { type, mode, destination, days, people, prompt }
- * Response: { tripId, roomCode }           // roomCode is null for solo
+ * Response: { tripId, roomCode? }
+ *   - roomCode is present only when mode === "group"
+ *   - Backend returns 201 on success
+ *   - Backend returns { error: { code, message } } on failure (§9.6)
  */
 export async function createTrip({ type, mode, destination, days, people, prompt }) {
-  // ---------- MOCK: replace this block with a real fetch ----------
-  await new Promise((r) => setTimeout(r, MOCK_DELAY_MS));
+  try {
+    const res = await fetch(`${API_BASE}/trips`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ type, mode, destination, days, people, prompt }),
+    });
 
-  // Simulate a ~5% random error for testing the error state
-  if (Math.random() < 0.05) {
+    const data = await res.json();
+
+    if (!res.ok) {
+      // Backend sends { error: { code, message } } for all errors
+      return { ok: false, data };
+    }
+
+    return { ok: true, data };
+  } catch (err) {
+    // Network failure / backend not reachable
     return {
       ok: false,
       data: {
         error: {
-          code: 'TRIP_CREATION_FAILED',
-          message: 'Something went wrong while creating the trip. Please try again.',
+          code: 'NETWORK_ERROR',
+          message: `Could not reach the server. Is the backend running on port 3001? (${err.message})`,
         },
       },
     };
   }
-
-  const tripId = 'trip_' + Math.random().toString(36).slice(2, 9);
-  const roomCode = mode === 'group' ? generateRoomCode() : null;
-
-  return {
-    ok: true,
-    data: { tripId, roomCode },
-  };
-  // ---------- END MOCK -------------------------------------------
 }
 
 /**
- * POST /api/trips/join — join an existing room
+ * POST /api/trips/join — join an existing group trip
  *
  * Request : { roomCode, userName }
  * Response: { tripId, userId }
+ *   - Backend returns 200 on success
+ *   - Backend returns { error: { code, message } } on failure (§9.6)
  */
 export async function joinTrip({ roomCode, userName }) {
-  // ---------- MOCK: replace this block with a real fetch ----------
-  await new Promise((r) => setTimeout(r, MOCK_DELAY_MS));
+  try {
+    const res = await fetch(`${API_BASE}/trips/join`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ roomCode, userName }),
+    });
 
-  if (Math.random() < 0.05) {
+    const data = await res.json();
+
+    if (!res.ok) {
+      return { ok: false, data };
+    }
+
+    return { ok: true, data };
+  } catch (err) {
     return {
       ok: false,
       data: {
         error: {
-          code: 'ROOM_NOT_FOUND',
-          message: 'No room with that code was found.',
+          code: 'NETWORK_ERROR',
+          message: `Could not reach the server. Is the backend running on port 3001? (${err.message})`,
         },
       },
     };
   }
-
-  const tripId = 'trip_' + Math.random().toString(36).slice(2, 9);
-  const userId = 'u_' + Math.random().toString(36).slice(2, 8);
-
-  return {
-    ok: true,
-    data: { tripId, userId },
-  };
-  // ---------- END MOCK -------------------------------------------
-}
-
-/* ---------- helpers ---------- */
-
-function generateRoomCode() {
-  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // no 0/O/1/I to avoid confusion
-  let code = '';
-  for (let i = 0; i < 6; i++) {
-    code += chars[Math.floor(Math.random() * chars.length)];
-  }
-  return code;
 }
