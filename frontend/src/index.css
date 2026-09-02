@@ -1,43 +1,71 @@
 /* ============================================================
-   Traverse — Global Design System
+   Traverse — Design System v4
+   Palette: Trail Ink / Route Orange / Mist
+   Type: Instrument Serif (display) + Inter (UI)
    ============================================================ */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@400;500;600;700&display=swap');
 
 :root {
-  /* Traverse palette — dark mode first */
-  --t-bg:           #0c0d14;
-  --t-bg-alt:       #12131c;
-  --t-surface:      #181a25;
-  --t-surface-alt:  #1e2030;
-  --t-border:       #2a2d3e;
-  --t-text:         #e4e5f1;
-  --t-text-muted:   #8b8ea5;
-  --t-accent:       #6366f1;
-  --t-accent-alt:   #a855f7;
-  --t-accent-dim:   rgba(99, 102, 241, 0.4);
-  --t-accent-glow:  rgba(99, 102, 241, 0.2);
-  --t-shadow:       0 8px 32px rgba(0, 0, 0, 0.35);
-  --t-shadow-lg:    0 12px 48px rgba(0, 0, 0, 0.5);
+  /* ── Palette ── */
+  --c-ink:        #0F1923;   /* Trail Ink — hero backgrounds, dark bands   */
+  --c-ink-mid:    #1E2D3D;   /* Slightly lighter ink — card headers         */
+  --c-orange:     #E8602C;   /* Route Orange — primary CTA only             */
+  --c-orange-dk:  #C94E1F;   /* Hover state                                 */
+  --c-mist:       #F4F1EC;   /* Page base — warm off-white                  */
+  --c-stone:      #2C3A47;   /* Secondary text, labels                      */
+  --c-contour:    #9FB3C8;   /* Borders, placeholders                       */
+  --c-summit:     #FFFFFF;   /* Card surfaces, inputs                       */
 
-  /* Fonts */
-  --t-sans: 'Inter', system-ui, -apple-system, sans-serif;
-  --t-mono: ui-monospace, 'Cascadia Code', Consolas, monospace;
+  /* ── Semantic ── */
+  --c-success:    #22C55E;
+  --c-success-bg: #F0FDF4;
+  --c-error:      #DC2626;
+  --c-error-bg:   #FEF2F2;
+  --c-error-bd:   #FECACA;
+  --c-error-tx:   #991B1B;
 
-  font-family: var(--t-sans);
-  font-size: 16px;
-  line-height: 1.55;
-  color: var(--t-text);
-  background: var(--t-bg);
-  color-scheme: dark;
+  /* ── Shadows — warm, not cold ── */
+  --s-xs:   0 1px 2px rgba(15,25,35,0.06);
+  --s-sm:   0 2px 6px rgba(15,25,35,0.08), 0 1px 2px rgba(15,25,35,0.04);
+  --s-md:   0 6px 20px rgba(15,25,35,0.10), 0 2px 6px rgba(15,25,35,0.05);
+  --s-lg:   0 16px 48px rgba(15,25,35,0.14), 0 4px 12px rgba(15,25,35,0.06);
+  --s-glow: 0 0 0 3px rgba(232,96,44,0.22);   /* orange focus ring  */
+  --s-blue: 0 0 0 3px rgba(159,179,200,0.3);  /* neutral focus ring */
+
+  /* ── Radius ── */
+  --r-sm:   8px;
+  --r:      12px;
+  --r-md:   16px;
+  --r-lg:   20px;
+  --r-xl:   24px;
+  --r-pill: 999px;
+
+  /* ── Motion ── */
+  --ease:        cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --dur:         0.18s;
+  --dur-md:      0.32s;
+  --dur-slow:    0.5s;
+
+  /* ── Type ── */
+  --font-serif: 'Instrument Serif', 'Georgia', serif;
+  --font-ui:    'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+  --font-mono:  'SF Mono', 'Cascadia Code', ui-monospace, Consolas, monospace;
+
+  font-family: var(--font-ui);
+  font-size: 15px;
+  line-height: 1.6;
+  color: var(--c-stone);
+  background: var(--c-mist);
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* ---- Reset ---- */
+/* ── Reset ── */
 *, *::before, *::after { box-sizing: border-box; }
-body { margin: 0; }
+body { margin: 0; background: var(--c-mist); }
 
 #root {
   min-height: 100svh;
@@ -45,28 +73,32 @@ body { margin: 0; }
   flex-direction: column;
 }
 
-/* ---- Typography ---- */
+/* ── Typography base ── */
 h1, h2, h3 {
-  font-family: var(--t-sans);
-  color: var(--t-text);
+  font-family: var(--font-ui);
+  color: var(--c-ink);
   font-weight: 700;
   margin: 0;
+  letter-spacing: -0.02em;
 }
+p { margin: 0; }
 
-p {
-  margin: 0;
-}
-
-/* ---- Scrollbar ---- */
-::-webkit-scrollbar { width: 6px; }
+/* ── Scrollbar ── */
+::-webkit-scrollbar { width: 5px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb {
-  background: var(--t-border);
+  background: var(--c-contour);
   border-radius: 3px;
 }
 
-/* ---- Selection ---- */
+/* ── Selection ── */
 ::selection {
-  background: var(--t-accent-dim);
-  color: #fff;
+  background: rgba(232, 96, 44, 0.18);
+  color: var(--c-ink);
+}
+
+/* ── Focus ── */
+:focus-visible {
+  outline: 2px solid var(--c-orange);
+  outline-offset: 2px;
 }
