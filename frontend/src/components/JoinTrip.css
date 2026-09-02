@@ -1,267 +1,358 @@
-/* ===== Join Trip — Component Styles ===== */
+/* ============================================================
+   Join Trip — v4
+   Matches CreateTrip design language exactly
+   ============================================================ */
 
-.jt-form {
-  max-width: 480px;
-  width: 100%;
-  margin: 0 auto;
+.jt-page {
+  min-height: 100svh;
   display: flex;
   flex-direction: column;
-  gap: 22px;
-  animation: jt-fadeUp 0.5s ease-out;
+  background: var(--c-mist);
+  animation: page-enter 0.5s var(--ease) both;
 }
 
-@keyframes jt-fadeUp {
-  from { opacity: 0; transform: translateY(24px); }
+@keyframes page-enter {
+  from { opacity: 0; transform: translateY(16px); }
   to   { opacity: 1; transform: translateY(0); }
 }
 
-/* ---- Back button ---- */
+/* ══════════════════════
+   DARK HEADER BAND
+   ══════════════════════ */
+.jt-header {
+  background: var(--c-ink);
+  padding: 28px 10% 48px;
+  position: relative;
+  overflow: hidden;
+}
+.jt-header::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 60% 80% at 10% 50%, rgba(13,148,136,0.06) 0%, transparent 70%),
+    radial-gradient(ellipse 40% 60% at 90% 80%, rgba(255,255,255,0.02) 0%, transparent 60%);
+  pointer-events: none;
+}
+
 .jt-back {
-  align-self: flex-start;
   background: none;
   border: none;
-  color: var(--t-text-muted);
-  font-size: 0.9rem;
+  font-family: var(--font-ui);
+  font-size: 0.85rem;
+  font-weight: 500;
   cursor: pointer;
   padding: 4px 0;
-  transition: color 0.2s;
+  margin-bottom: 20px;
+  display: inline-block;
+  transition: opacity var(--dur), transform var(--dur);
 }
-.jt-back:hover { color: var(--t-text); }
+.jt-back--light { color: rgba(255,255,255,0.5); }
+.jt-back--light:hover { color: rgba(255,255,255,0.9); transform: translateX(-3px); }
+.jt-back:not(.jt-back--light) { color: var(--c-stone); }
+.jt-back:not(.jt-back--light):hover { color: var(--c-ink); transform: translateX(-3px); }
 
-/* ---- Title ---- */
-.jt-title {
-  font-size: 2.2rem;
-  font-weight: 700;
-  background: linear-gradient(135deg, var(--t-accent-alt), var(--t-accent));
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  margin: 0;
-  line-height: 1.15;
+.jt-display {
+  font-family: var(--font-serif);
+  font-weight: 400;
+  font-size: clamp(2.2rem, 5vw, 3.4rem);
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  color: #fff;
+  margin: 0 0 12px;
 }
-.jt-subtitle {
-  color: var(--t-text-muted);
-  margin-top: -8px;
+.jt-display em {
+  font-style: italic;
+  color: rgba(255,255,255,0.7);
 }
 
-/* ---- Field wrapper ---- */
+.jt-header-sub {
+  font-size: 0.9rem;
+  color: rgba(255,255,255,0.4);
+  font-weight: 400;
+}
+
+/* ══════════════════════
+   FORM CARD
+   ══════════════════════ */
+.jt-form {
+  flex: 1;
+  background: var(--c-summit);
+  border-radius: var(--r-xl) var(--r-xl) 0 0;
+  margin-top: -24px;
+  padding: 36px 10% 48px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  box-shadow: 0 -4px 24px rgba(15,25,35,0.12);
+}
+
 .jt-field {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 8px;
 }
 .jt-label {
-  font-size: 0.85rem;
-  font-weight: 600;
-  color: var(--t-text-muted);
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--c-contour);
   text-transform: uppercase;
-  letter-spacing: 0.6px;
+  letter-spacing: 0.1em;
 }
 
-/* ---- Text input ---- */
-.jt-input {
-  background: var(--t-surface);
-  border: 1.5px solid var(--t-border);
-  border-radius: 10px;
-  padding: 12px 14px;
-  font-size: 1rem;
-  color: var(--t-text);
-  font-family: inherit;
-  transition: border-color 0.2s, box-shadow 0.2s;
-  outline: none;
-}
-.jt-input:focus {
-  border-color: var(--t-accent);
-  box-shadow: 0 0 0 3px var(--t-accent-glow);
-}
-
-/* ---- Room code — large monospaced input ---- */
-.jt-code-field {
+/* ── Room code input section ── */
+.jt-code-section {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
+  padding: 32px 24px;
+  background: var(--c-mist);
+  border-radius: var(--r-lg);
 }
+.jt-code-section .jt-label {
+  align-self: center;
+}
+
 .jt-code-input {
-  background: var(--t-surface);
-  border: 2px solid var(--t-border);
-  border-radius: 14px;
-  padding: 18px 24px;
-  font-size: 2.2rem;
+  background: var(--c-summit);
+  border: 2px solid transparent;
+  border-radius: var(--r-md);
+  padding: 20px 24px;
+  font-size: 2.4rem;
   font-weight: 800;
-  letter-spacing: 10px;
+  letter-spacing: 0.22em;
   text-align: center;
-  color: var(--t-text);
-  font-family: inherit;
+  color: var(--c-ink);
+  font-family: var(--font-mono);
   width: 100%;
-  max-width: 320px;
-  box-sizing: border-box;
-  transition: border-color 0.2s, box-shadow 0.2s;
+  max-width: 280px;
+  box-shadow: var(--s-sm);
+  transition:
+    border-color var(--dur-md) var(--ease),
+    box-shadow var(--dur-md) var(--ease),
+    transform var(--dur) var(--ease);
   outline: none;
   text-transform: uppercase;
 }
 .jt-code-input::placeholder {
-  color: var(--t-text-muted);
-  opacity: 0.4;
-  letter-spacing: 4px;
+  color: var(--c-contour);
+  opacity: 0.5;
+  letter-spacing: 0.05em;
   font-weight: 400;
-  font-size: 1.1rem;
+  font-size: 0.9rem;
+  font-family: var(--font-ui);
+}
+.jt-code-input:hover {
+  box-shadow: var(--s-md);
+  transform: translateY(-1px);
 }
 .jt-code-input:focus {
-  border-color: var(--t-accent);
-  box-shadow: 0 0 0 4px var(--t-accent-glow);
+  border-color: var(--c-orange);
+  box-shadow: var(--s-glow), var(--s-sm);
+  transform: translateY(0);
 }
 
-/* ---- Buttons ---- */
-.jt-btn {
-  padding: 14px 28px;
-  border-radius: 12px;
-  font-size: 1.05rem;
+/* ── Regular input ── */
+.jt-input {
+  width: 100%;
+  background: var(--c-mist);
+  border: 2px solid transparent;
+  border-radius: var(--r);
+  padding: 13px 16px;
+  font-family: var(--font-ui);
+  font-size: 0.95rem;
+  color: var(--c-ink);
+  font-weight: 400;
+  transition:
+    border-color var(--dur-md) var(--ease),
+    box-shadow var(--dur-md) var(--ease),
+    background var(--dur) var(--ease);
+  outline: none;
+}
+.jt-input::placeholder { color: var(--c-contour); }
+.jt-input:hover { background: #ece9e3; }
+.jt-input:focus {
+  border-color: var(--c-orange);
+  background: var(--c-summit);
+  box-shadow: var(--s-glow);
+}
+
+/* ── Buttons ── */
+.jt-btn-primary {
+  height: 54px;
+  border-radius: var(--r-pill);
+  background: var(--c-orange);
+  color: #fff;
+  border: none;
+  font-family: var(--font-ui);
+  font-size: 0.95rem;
+  font-weight: 700;
+  cursor: pointer;
+  letter-spacing: -0.01em;
+  box-shadow: 0 4px 20px rgba(232,96,44,0.3);
+  transition:
+    background var(--dur) var(--ease),
+    box-shadow var(--dur-md) var(--ease),
+    transform var(--dur) var(--ease),
+    opacity var(--dur);
+}
+.jt-btn-primary:hover:not(:disabled) {
+  background: var(--c-orange-dk);
+  box-shadow: 0 8px 28px rgba(232,96,44,0.42);
+  transform: translateY(-2px);
+}
+.jt-btn-primary:active:not(:disabled) {
+  transform: translateY(0) scale(0.97);
+}
+.jt-btn-primary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none !important;
+}
+
+.jt-btn-secondary {
+  height: 48px;
+  padding: 0 28px;
+  border-radius: var(--r-pill);
+  background: transparent;
+  border: 2px solid rgba(15,25,35,0.12);
+  color: var(--c-stone);
+  font-family: var(--font-ui);
+  font-size: 0.9rem;
   font-weight: 600;
   cursor: pointer;
-  border: none;
-  transition: transform 0.15s, box-shadow 0.25s, opacity 0.2s;
-  font-family: inherit;
+  transition:
+    border-color var(--dur) var(--ease),
+    color var(--dur) var(--ease),
+    transform var(--dur) var(--ease);
 }
-.jt-btn:active { transform: scale(0.97); }
-.jt-btn:disabled {
-  opacity: 0.65;
-  cursor: not-allowed;
-}
-
-.jt-btn--primary {
-  background: linear-gradient(135deg, var(--t-accent-alt), var(--t-accent));
-  color: #fff;
-  box-shadow: 0 4px 20px var(--t-accent-glow);
-}
-.jt-btn--primary:hover:not(:disabled) {
-  box-shadow: 0 6px 28px var(--t-accent-glow);
+.jt-btn-secondary:hover {
+  border-color: var(--c-orange);
+  color: var(--c-orange-dk);
   transform: translateY(-1px);
 }
 
-.jt-btn--outline {
-  background: transparent;
-  border: 1.5px solid var(--t-border);
-  color: var(--t-text);
-}
-.jt-btn--outline:hover {
-  border-color: var(--t-accent);
-  color: var(--t-accent);
-}
-
-/* ---- Spinner ---- */
+/* ── Spinner ── */
 .jt-spinner-wrap {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
+  justify-content: center;
+  gap: 10px;
+  height: 100%;
 }
 .jt-spinner {
-  width: 18px;
-  height: 18px;
-  border: 2.5px solid rgba(255, 255, 255, 0.25);
+  width: 18px; height: 18px;
+  border: 2.5px solid rgba(255,255,255,0.3);
   border-top-color: #fff;
   border-radius: 50%;
-  animation: jt-spin 0.7s linear infinite;
+  animation: spin 0.65s linear infinite;
 }
-@keyframes jt-spin {
-  to { transform: rotate(360deg); }
-}
+@keyframes spin { to { transform: rotate(360deg); } }
 
-/* ---- Error banner ---- */
+/* ── Error ── */
 .jt-error {
   display: flex;
   align-items: flex-start;
-  gap: 10px;
-  padding: 14px 16px;
-  border-radius: 10px;
-  background: rgba(239, 68, 68, 0.1);
-  border: 1px solid rgba(239, 68, 68, 0.3);
-  color: #fca5a5;
-  font-size: 0.9rem;
-  animation: jt-shake 0.35s ease;
+  gap: 12px;
+  padding: 16px 18px;
+  border-radius: var(--r);
+  background: var(--c-error-bg);
+  border: 1px solid var(--c-error-bd);
+  color: var(--c-error-tx);
+  font-size: 0.88rem;
+  line-height: 1.5;
+  animation: slide-down 0.35s var(--ease) both;
 }
 .jt-error strong {
-  color: #f87171;
-  font-size: 0.8rem;
+  font-size: 0.7rem;
+  font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.3px;
+  letter-spacing: 0.06em;
+  color: var(--c-error);
 }
-.jt-error p { margin: 2px 0 0; }
-.jt-error-icon { font-size: 1.25rem; flex-shrink: 0; }
+.jt-error p { margin: 3px 0 0; }
+.jt-error-icon { font-size: 1.1rem; flex-shrink: 0; }
 
-@keyframes jt-shake {
-  0%, 100% { transform: translateX(0); }
-  15% { transform: translateX(-6px); }
-  30% { transform: translateX(5px); }
-  45% { transform: translateX(-4px); }
-  60% { transform: translateX(3px); }
-  75% { transform: translateX(-2px); }
+@keyframes slide-down {
+  from { opacity: 0; transform: translateY(-8px); }
+  to   { opacity: 1; transform: translateY(0); }
 }
 
-/* ============ Success state ============ */
+/* ══════════════════════
+   SUCCESS STATE
+   ══════════════════════ */
 .jt-success {
-  max-width: 460px;
-  width: 100%;
-  margin: 0 auto;
+  flex: 1;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 16px;
+  justify-content: center;
+  gap: 20px;
   text-align: center;
-  animation: jt-fadeUp 0.5s ease-out;
+  padding: 40px 10%;
+  animation: pop-in 0.65s var(--ease-spring) both;
 }
-.jt-success-icon {
-  animation: jt-pop 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+@keyframes pop-in {
+  from { opacity: 0; transform: scale(0.9); }
+  to   { opacity: 1; transform: scale(1); }
 }
-@keyframes jt-pop {
-  from { transform: scale(0); opacity: 0; }
-  to   { transform: scale(1); opacity: 1; }
+
+.jt-success-icon { animation: pin-drop 0.7s var(--ease-spring); }
+@keyframes pin-drop {
+  0%   { transform: translateY(-30px) scale(0.7); opacity: 0; }
+  70%  { transform: translateY(6px) scale(1.05); }
+  100% { transform: translateY(0) scale(1); opacity: 1; }
 }
+
 .jt-success-title {
-  font-size: 1.8rem;
-  font-weight: 700;
-  color: var(--t-text);
-  margin: 0;
+  font-family: var(--font-serif);
+  font-weight: 400;
+  font-size: 2.2rem;
+  color: var(--c-ink);
+  letter-spacing: -0.02em;
+  line-height: 1.1;
 }
-.jt-success-sub {
-  color: var(--t-text-muted);
-  font-size: 1rem;
-}
-.jt-success-sub strong { color: var(--t-text); }
+.jt-success-sub { color: var(--c-stone); font-size: 1rem; }
+.jt-success-sub strong { color: var(--c-ink); font-weight: 600; }
 
 /* Detail card */
 .jt-detail-card {
   width: 100%;
-  padding: 20px 24px;
-  border-radius: 14px;
-  background: var(--t-surface);
-  border: 1.5px solid var(--t-border);
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  box-shadow: var(--t-shadow);
+  max-width: 360px;
+  background: var(--c-mist);
+  border-radius: var(--r-lg);
+  overflow: hidden;
+  box-shadow: var(--s-sm);
 }
 .jt-detail-row {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  padding: 14px 20px;
+}
+.jt-detail-row + .jt-detail-row {
+  border-top: 1px solid rgba(15,25,35,0.06);
 }
 .jt-detail-label {
-  font-size: 0.8rem;
-  font-weight: 600;
+  font-size: 0.7rem;
+  font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.8px;
-  color: var(--t-text-muted);
+  letter-spacing: 0.08em;
+  color: var(--c-contour);
 }
 .jt-detail-value {
-  font-family: ui-monospace, Consolas, monospace;
-  font-size: 0.95rem;
-  color: var(--t-accent);
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  color: var(--c-ink);
   font-weight: 600;
 }
 
-/* ---- Responsive ---- */
-@media (max-width: 540px) {
-  .jt-title { font-size: 1.7rem; }
-  .jt-code-input { font-size: 1.6rem; letter-spacing: 6px; }
+/* ── Responsive ── */
+@media (max-width: 600px) {
+  .jt-header { padding: 24px 24px 44px; }
+  .jt-form { padding: 28px 24px 40px; }
+  .jt-display { font-size: 2rem; }
+  .jt-code-section { padding: 24px 16px; }
+  .jt-code-input { font-size: 1.7rem; letter-spacing: 0.14em; padding: 16px 18px; }
 }

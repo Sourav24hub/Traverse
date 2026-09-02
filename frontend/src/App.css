@@ -1,164 +1,203 @@
 /* ============================================================
-   App — Layout & Landing Page Styles
+   App — Shell & Landing — v4
    ============================================================ */
 
-/* ---- App shell ---- */
 .app-shell {
+  min-height: 100svh;
   display: flex;
   flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  min-height: 100svh;
-  padding: 40px 24px;
-  position: relative;
-  overflow: hidden;
+  background: var(--c-mist);
 }
 
-/* ---- Ambient background glow ---- */
-.app-shell::before {
-  content: '';
-  position: fixed;
-  top: -30%;
-  left: -10%;
-  width: 60%;
-  height: 60%;
-  background: radial-gradient(circle, rgba(99, 102, 241, 0.08) 0%, transparent 70%);
-  pointer-events: none;
-  z-index: 0;
-}
-.app-shell::after {
-  content: '';
-  position: fixed;
-  bottom: -20%;
-  right: -10%;
-  width: 50%;
-  height: 50%;
-  background: radial-gradient(circle, rgba(168, 85, 247, 0.06) 0%, transparent 70%);
-  pointer-events: none;
-  z-index: 0;
-}
-
-.app-shell > * {
-  position: relative;
-  z-index: 1;
-}
-
-/* ============ Landing screen ============ */
+/* ════════════════════════════════
+   LANDING
+   ════════════════════════════════ */
 .landing {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  gap: 12px;
-  text-align: center;
-  max-width: 580px;
-  animation: land-fadeIn 0.6s ease-out;
+  min-height: 100svh;
+  animation: page-enter 0.55s var(--ease) both;
 }
 
-@keyframes land-fadeIn {
-  from { opacity: 0; transform: translateY(30px); }
+@keyframes page-enter {
+  from { opacity: 0; transform: translateY(14px); }
   to   { opacity: 1; transform: translateY(0); }
 }
 
-/* Logo mark */
-.landing-logo {
-  width: 72px;
-  height: 72px;
-  border-radius: 18px;
-  background: linear-gradient(135deg, var(--t-accent), var(--t-accent-alt));
+/* ── Nav ── */
+.landing-nav {
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  z-index: 10;
+  padding: 22px 36px;
   display: flex;
   align-items: center;
-  justify-content: center;
-  font-size: 2rem;
-  box-shadow: 0 6px 28px var(--t-accent-glow);
-  margin-bottom: 8px;
-  animation: land-float 4s ease-in-out infinite;
 }
 
-@keyframes land-float {
-  0%, 100% { transform: translateY(0); }
-  50%      { transform: translateY(-8px); }
-}
-
-.landing-brand {
-  font-size: 3rem;
-  font-weight: 800;
-  background: linear-gradient(135deg, #e4e5f1 30%, var(--t-accent) 60%, var(--t-accent-alt));
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  letter-spacing: -1px;
-  line-height: 1.1;
-}
-
-.landing-tagline {
-  font-size: 1.1rem;
-  color: var(--t-text-muted);
-  max-width: 420px;
-  line-height: 1.6;
-}
-
-/* Action cards */
-.landing-actions {
-  display: flex;
-  gap: 16px;
-  margin-top: 28px;
-  width: 100%;
-  max-width: 440px;
-}
-
-.landing-card {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 10px;
-  padding: 28px 20px;
-  background: var(--t-surface);
-  border: 1.5px solid var(--t-border);
-  border-radius: 16px;
-  cursor: pointer;
-  transition: border-color 0.25s, box-shadow 0.3s, transform 0.2s;
-  user-select: none;
-  text-align: center;
-}
-.landing-card:hover {
-  border-color: var(--t-accent);
-  box-shadow: 0 0 0 3px var(--t-accent-glow), var(--t-shadow);
-  transform: translateY(-3px);
-}
-.landing-card:active {
-  transform: translateY(0) scale(0.98);
-}
-
-.landing-card-icon {
-  font-size: 2.2rem;
-  margin-bottom: 4px;
-}
-.landing-card-title {
-  font-size: 1.05rem;
+.landing-wordmark {
+  font-family: var(--font-ui);
+  font-size: 0.9rem;
   font-weight: 700;
-  color: var(--t-text);
-}
-.landing-card-desc {
-  font-size: 0.82rem;
-  color: var(--t-text-muted);
-  line-height: 1.45;
-}
-
-/* Subtle bottom tagline */
-.landing-footer {
-  margin-top: 40px;
-  font-size: 0.78rem;
-  color: var(--t-text-muted);
-  opacity: 0.5;
-  letter-spacing: 1px;
+  letter-spacing: 0.18em;
   text-transform: uppercase;
+  color: rgba(255,255,255,0.7);
 }
 
-/* ---- Responsive ---- */
-@media (max-width: 500px) {
-  .landing-brand { font-size: 2.2rem; }
-  .landing-tagline { font-size: 0.95rem; }
-  .landing-actions { flex-direction: column; }
-  .landing-card { padding: 22px 18px; }
+/* ── Hero block ── */
+.landing-hero {
+  position: relative;
+  background: var(--c-ink);
+  min-height: 72vh;
+  display: flex;
+  align-items: flex-end;
+  overflow: hidden;
+}
+
+/* Topo SVG — full bleed background layer */
+.landing-topo {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.landing-hero-content {
+  position: relative;
+  z-index: 2;
+  padding: 0 10% 72px;
+  max-width: 900px;
+}
+
+/* ── Display type — the hero moment ── */
+.landing-display {
+  font-family: var(--font-serif);
+  font-weight: 400;            /* Instrument Serif shines at regular weight */
+  font-size: clamp(3rem, 7vw, 5.5rem);
+  line-height: 1.08;
+  letter-spacing: -0.02em;
+  color: #fff;
+  margin: 0 0 24px;
+}
+
+.landing-display em {
+  font-style: italic;
+  color: rgba(255,255,255,0.8);
+}
+
+.landing-lead {
+  font-family: var(--font-ui);
+  font-size: clamp(0.95rem, 1.8vw, 1.1rem);
+  color: rgba(255,255,255,0.55);
+  line-height: 1.6;
+  max-width: 480px;
+  margin-bottom: 40px;
+  font-weight: 400;
+}
+
+/* ── CTA group ── */
+.landing-cta-group {
+  display: flex;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
+/* Primary — Route Orange pill */
+.btn-primary {
+  height: 52px;
+  padding: 0 32px;
+  background: var(--c-orange);
+  color: #fff;
+  border: none;
+  border-radius: var(--r-pill);
+  font-family: var(--font-ui);
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  letter-spacing: -0.01em;
+  transition:
+    background var(--dur) var(--ease),
+    box-shadow var(--dur-md) var(--ease),
+    transform var(--dur) var(--ease);
+  box-shadow: 0 4px 20px rgba(232, 96, 44, 0.35);
+}
+.btn-primary:hover {
+  background: var(--c-orange-dk);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 28px rgba(232, 96, 44, 0.45);
+}
+.btn-primary:active {
+  transform: translateY(0) scale(0.97);
+  box-shadow: 0 2px 10px rgba(232, 96, 44, 0.25);
+}
+
+/* Ghost — for "Join with code" */
+.btn-ghost {
+  height: 52px;
+  padding: 0 28px;
+  background: rgba(255,255,255,0.07);
+  border: 1px solid rgba(255,255,255,0.18);
+  color: rgba(255,255,255,0.75);
+  border-radius: var(--r-pill);
+  font-family: var(--font-ui);
+  font-size: 0.95rem;
+  font-weight: 500;
+  cursor: pointer;
+  letter-spacing: -0.01em;
+  backdrop-filter: blur(8px);
+  transition:
+    background var(--dur) var(--ease),
+    color var(--dur) var(--ease),
+    border-color var(--dur) var(--ease),
+    transform var(--dur) var(--ease);
+}
+.btn-ghost:hover {
+  background: rgba(255,255,255,0.13);
+  border-color: rgba(255,255,255,0.32);
+  color: #fff;
+  transform: translateY(-1px);
+}
+.btn-ghost:active {
+  transform: scale(0.97);
+}
+
+/* ── Feature strip ── */
+.landing-features {
+  background: var(--c-summit);
+  padding: 20px 10%;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+  border-top: 1px solid rgba(15,25,35,0.06);
+}
+
+.feature-item {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+.feature-icon { font-size: 0.9rem; opacity: 0.7; }
+.feature-text {
+  font-size: 0.82rem;
+  font-weight: 500;
+  color: var(--c-stone);
+  opacity: 0.65;
+  white-space: nowrap;
+}
+.feature-sep {
+  color: var(--c-contour);
+  font-size: 1rem;
+  line-height: 1;
+}
+
+/* ── Responsive ── */
+@media (max-width: 600px) {
+  .landing-hero { min-height: 80vh; }
+  .landing-hero-content { padding: 0 24px 56px; }
+  .landing-nav { padding: 20px 24px; }
+  .landing-features { padding: 18px 24px; gap: 10px; }
+  .feature-sep { display: none; }
+  .landing-cta-group { flex-direction: column; }
+  .btn-primary, .btn-ghost { width: 100%; justify-content: center; }
 }
