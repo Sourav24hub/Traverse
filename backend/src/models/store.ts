@@ -25,6 +25,13 @@ export interface Itinerary {
   days: ItineraryDay[];
 }
 
+export interface UserLocation {
+  userId: string;
+  lat: number;
+  lng: number;
+  timestamp: string;
+}
+
 export interface Trip {
   tripId: string;
   type: "trip" | "outing";
@@ -40,6 +47,10 @@ export interface Trip {
   createdAt: string;
   /** Set after POST /api/itinerary/generate is called */
   itinerary?: Itinerary;
+  /** Map of userId → latest known UserLocation */
+  latestLocations?: Record<string, UserLocation>;
+  /** Map of userId → array of historical UserLocations */
+  locationHistory?: Record<string, UserLocation[]>;
 }
 
 /** Keyed by tripId */
