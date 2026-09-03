@@ -11,12 +11,10 @@ const INITIAL = {
   prompt: '',
 };
 
-export default function CreateTrip({ onBack }) {
+export default function CreateTrip({ onBack, onSuccess }) {
   const [form, setForm] = useState(INITIAL);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [result, setResult] = useState(null);
-  const [copied, setCopied] = useState(false);
 
   const set = (key) => (e) =>
     setForm((prev) => ({ ...prev, [key]: e.target.value }));
@@ -29,7 +27,6 @@ export default function CreateTrip({ onBack }) {
     e.preventDefault();
     setLoading(true);
     setError(null);
-    setResult(null);
 
     const res = await createTrip({
       ...form,
@@ -42,64 +39,13 @@ export default function CreateTrip({ onBack }) {
     if (!res.ok) {
       setError(res.data.error);
     } else {
-      setResult(res.data);
+      onSuccess?.({ tripId: res.data.tripId, destination: form.destination });
     }
   }
 
-  function copyCode() {
-    if (result?.roomCode) {
-      navigator.clipboard.writeText(result.roomCode);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    }
-  }
-
-  /* ---------- Success state ---------- */
-  if (result) {
-    return (
-      <div className="ct-page" id="create-trip-success">
-        <button type="button" className="ct-back" onClick={onBack}>← Back</button>
-        <div className="ct-success">
-          {/* Map-pin checkmark */}
-          <div className="ct-success-icon">
-            <svg width="56" height="68" viewBox="0 0 56 68" fill="none">
-              <path d="M28 0C12.536 0 0 12.536 0 28c0 10.386 5.664 19.432 14.04 24.248L28 68l13.96-15.752C50.336 47.432 56 38.386 56 28 56 12.536 43.464 0 28 0Z" fill="#E8602C"/>
-              <path d="M18 28.5L24.5 35L38 21" stroke="#fff" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round"/>
-            </svg>
-          </div>
-
-          <h2 className="ct-success-title">Trip Created!</h2>
-          <p className="ct-success-sub">
-            Your trip to <strong>{form.destination}</strong> is ready.
-          </p>
-
-          {result.roomCode && (
-            <div className="ct-room-code-card">
-              <span className="ct-room-label">Room Code</span>
-              <button
-                className="ct-room-value"
-                onClick={copyCode}
-                title="Click to copy"
-                id="room-code-copy-btn"
-              >
-                {result.roomCode}
-              </button>
-              <span className="ct-copy-hint">{copied ? '✓ Copied!' : 'tap to copy'}</span>
-              <p className="ct-room-help">
-                Share this code with your travel companions so they can join.
-              </p>
-            </div>
-          )}
-
-          <button className="ct-btn-secondary" onClick={onBack} id="create-trip-done-btn">
-            ← Back to home
-          </button>
-        </div>
-      </div>
-    );
-  }
 
   /* ---------- Form state ---------- */
+
   return (
     <div className="ct-page" id="create-trip-form-page">
       {/* ── Dark header band — the hero moment ── */}
@@ -184,8 +130,8 @@ export default function CreateTrip({ onBack }) {
               className="ct-input"
               type="number"
               min={1}
-              max={30}
-              placeholder="e.g. 3"
+              max={14}
+              placeholder="e.g. 3 (max 14)"
               value={form.days}
               onChange={setNum('days')}
               id="create-trip-days"

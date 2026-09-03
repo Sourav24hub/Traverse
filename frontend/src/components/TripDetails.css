@@ -1,0 +1,351 @@
+/* ============================================================
+   TripDetails — Page 4
+   Trail Ink header band → white form card
+   Same design language as CreateTrip.css / JoinTrip.css
+   ============================================================ */
+
+.td-page {
+  min-height: 100svh;
+  display: flex;
+  flex-direction: column;
+  background: var(--c-mist);
+  animation: page-enter 0.45s var(--ease) both;
+}
+
+@keyframes page-enter {
+  from { opacity: 0; transform: translateY(14px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ── Dark header ── */
+.td-header {
+  background: var(--c-ink);
+  padding: 28px 10% 52px;
+  position: relative;
+  overflow: hidden;
+}
+.td-header::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 60% 80% at 88% 40%, rgba(232,96,44,0.06) 0%, transparent 70%),
+    radial-gradient(ellipse 40% 60% at 5% 80%, rgba(255,255,255,0.02) 0%, transparent 60%);
+  pointer-events: none;
+}
+
+.td-back {
+  background: none;
+  border: none;
+  font-family: var(--font-ui);
+  font-size: 0.85rem;
+  font-weight: 500;
+  cursor: pointer;
+  padding: 4px 0;
+  margin-bottom: 22px;
+  display: inline-block;
+  transition: color var(--dur), transform var(--dur);
+}
+.td-back--light { color: rgba(255,255,255,0.45); }
+.td-back--light:hover { color: rgba(255,255,255,0.9); transform: translateX(-3px); }
+
+.td-display {
+  font-family: var(--font-serif);
+  font-weight: 400;
+  font-size: clamp(2.2rem, 5vw, 3.4rem);
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  color: #fff;
+  margin: 0 0 10px;
+}
+.td-display em {
+  font-style: italic;
+  color: rgba(255,255,255,0.65);
+}
+
+.td-header-sub {
+  font-size: 0.88rem;
+  color: rgba(255,255,255,0.38);
+  font-weight: 400;
+}
+
+/* ── White form card ── */
+.td-form {
+  flex: 1;
+  background: var(--c-summit);
+  border-radius: var(--r-xl) var(--r-xl) 0 0;
+  margin-top: -24px;
+  padding: 36px 10% 56px;
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+  box-shadow: 0 -4px 24px rgba(15,25,35,0.12);
+}
+
+/* ── Fields ── */
+.td-field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.td-label-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.td-label {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--c-contour);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+.td-field-hint {
+  font-size: 0.72rem;
+  font-weight: 500;
+  color: var(--c-contour);
+}
+.td-label small {
+  text-transform: none;
+  font-weight: 400;
+  color: var(--c-contour);
+  opacity: 0.7;
+}
+.td-field-error {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--c-error);
+  line-height: 1.4;
+  animation: slide-down 0.25s var(--ease) both;
+}
+
+/* ── Inputs ── */
+.td-input,
+.td-textarea {
+  width: 100%;
+  background: var(--c-mist);
+  border: 2px solid transparent;
+  border-radius: var(--r);
+  padding: 13px 16px;
+  font-family: var(--font-ui);
+  font-size: 0.95rem;
+  color: var(--c-ink);
+  font-weight: 400;
+  transition:
+    border-color var(--dur-md) var(--ease),
+    box-shadow var(--dur-md) var(--ease),
+    background var(--dur) var(--ease);
+  outline: none;
+}
+.td-input::placeholder, .td-textarea::placeholder {
+  color: var(--c-contour);
+  font-weight: 400;
+}
+.td-input:hover, .td-textarea:hover { background: #ece9e3; }
+.td-input:focus, .td-textarea:focus {
+  border-color: var(--c-orange);
+  background: var(--c-summit);
+  box-shadow: var(--s-glow);
+}
+.td-input--error,
+.td-input--error:focus {
+  border-color: var(--c-error) !important;
+  background: var(--c-error-bg) !important;
+  box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.15) !important;
+}
+.td-textarea {
+  resize: vertical;
+  min-height: 90px;
+  line-height: 1.55;
+}
+.td-input[type="number"]::-webkit-inner-spin-button,
+.td-input[type="number"]::-webkit-outer-spin-button { opacity: 0; }
+.td-input[type="number"]:hover::-webkit-inner-spin-button,
+.td-input[type="number"]:hover::-webkit-outer-spin-button { opacity: 1; }
+
+/* ── Error ── */
+.td-error {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 16px 18px;
+  border-radius: var(--r);
+  background: var(--c-error-bg);
+  border: 1px solid var(--c-error-bd);
+  color: var(--c-error-tx);
+  font-size: 0.88rem;
+  line-height: 1.5;
+  animation: slide-down 0.32s var(--ease) both;
+}
+.td-error strong {
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--c-error);
+}
+.td-error p { margin: 3px 0 0; }
+.td-error-icon { font-size: 1.1rem; flex-shrink: 0; }
+
+@keyframes slide-down {
+  from { opacity: 0; transform: translateY(-8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ── Primary CTA ── */
+.td-btn-primary {
+  height: 54px;
+  border-radius: var(--r-pill);
+  background: var(--c-orange);
+  color: #fff;
+  border: none;
+  font-family: var(--font-ui);
+  font-size: 0.95rem;
+  font-weight: 700;
+  cursor: pointer;
+  letter-spacing: -0.01em;
+  box-shadow: 0 4px 20px rgba(232,96,44,0.28);
+  transition:
+    background var(--dur) var(--ease),
+    box-shadow var(--dur-md) var(--ease),
+    transform var(--dur) var(--ease),
+    opacity var(--dur);
+}
+.td-btn-primary:hover:not(:disabled) {
+  background: var(--c-orange-dk);
+  box-shadow: 0 8px 28px rgba(232,96,44,0.42);
+  transform: translateY(-2px);
+}
+.td-btn-primary:active:not(:disabled) {
+  transform: translateY(0) scale(0.97);
+}
+.td-btn-primary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none !important;
+}
+
+/* ── Spinner ── */
+.td-spinner-wrap {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  height: 100%;
+}
+.td-spinner {
+  width: 18px;
+  height: 18px;
+  border: 2.5px solid rgba(255,255,255,0.3);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: spin 0.65s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ══════════════════════════════════════
+   SUCCESS STATE — Group room code
+   ══════════════════════════════════════ */
+.td-body {
+  flex: 1;
+  background: var(--c-summit);
+  border-radius: var(--r-xl) var(--r-xl) 0 0;
+  margin-top: -24px;
+  padding: 40px 10% 56px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+  text-align: center;
+  box-shadow: 0 -4px 24px rgba(15,25,35,0.12);
+}
+
+.td-success-icon {
+  animation: pin-drop 0.65s var(--ease-spring);
+}
+@keyframes pin-drop {
+  0%   { transform: translateY(-28px) scale(0.7); opacity: 0; }
+  65%  { transform: translateY(5px) scale(1.06); }
+  100% { transform: translateY(0) scale(1); opacity: 1; }
+}
+
+.td-success-title {
+  font-family: var(--font-serif);
+  font-weight: 400;
+  font-size: 2rem;
+  color: var(--c-ink);
+  letter-spacing: -0.02em;
+  margin: 0;
+}
+.td-success-sub {
+  color: var(--c-stone);
+  font-size: 1rem;
+  margin-top: -8px;
+}
+.td-success-sub strong { color: var(--c-ink); font-weight: 600; }
+
+/* Room code card — dark, premium */
+.td-room-card {
+  width: 100%;
+  max-width: 380px;
+  padding: 32px 24px 24px;
+  background: var(--c-ink);
+  border-radius: var(--r-xl);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  box-shadow: var(--s-lg);
+}
+
+.td-room-label {
+  font-size: 0.62rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.22em;
+  color: rgba(255,255,255,0.3);
+}
+
+.td-room-code {
+  font-family: var(--font-mono);
+  font-size: 3rem;
+  font-weight: 800;
+  letter-spacing: 0.2em;
+  color: var(--c-orange);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 6px 0;
+  transition: transform var(--dur) var(--ease), letter-spacing var(--dur-md) var(--ease);
+}
+.td-room-code:hover {
+  transform: scale(1.05);
+  letter-spacing: 0.26em;
+}
+
+.td-copy-hint {
+  font-size: 0.72rem;
+  font-weight: 500;
+  color: rgba(255,255,255,0.28);
+  font-family: var(--font-ui);
+  transition: color var(--dur);
+}
+.td-room-code:hover + .td-copy-hint,
+.td-copy-hint:has(+ *) { color: rgba(255,255,255,0.5); }
+
+.td-room-help {
+  font-size: 0.82rem;
+  color: rgba(255,255,255,0.28);
+  margin-top: 6px;
+  line-height: 1.55;
+  max-width: 260px;
+}
+
+/* ── Responsive ── */
+@media (max-width: 600px) {
+  .td-header { padding: 24px 24px 46px; }
+  .td-form { padding: 28px 20px 44px; }
+  .td-body { padding: 32px 20px 48px; }
+  .td-display { font-size: 2rem; }
+  .td-room-code { font-size: 2.1rem; letter-spacing: 0.14em; }
+}

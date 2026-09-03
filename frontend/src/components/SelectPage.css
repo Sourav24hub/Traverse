@@ -1,0 +1,168 @@
+/* ============================================================
+   SelectPage — shared CSS for ModeSelect + TypeSelect (Pages 2 & 3)
+   Same design system: Trail Ink header band → white body overlap
+   ============================================================ */
+
+.sp-page {
+  min-height: 100svh;
+  display: flex;
+  flex-direction: column;
+  background: var(--c-mist);
+  animation: page-enter 0.45s var(--ease) both;
+}
+
+@keyframes page-enter {
+  from { opacity: 0; transform: translateY(14px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ── Dark header ── */
+.sp-header {
+  background: var(--c-ink);
+  padding: 28px 10% 56px;
+  position: relative;
+  overflow: hidden;
+}
+.sp-header::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse 55% 70% at 80% 40%, rgba(232,96,44,0.06) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+.sp-back {
+  background: none;
+  border: none;
+  font-family: var(--font-ui);
+  font-size: 0.85rem;
+  font-weight: 500;
+  cursor: pointer;
+  padding: 4px 0;
+  margin-bottom: 24px;
+  display: inline-block;
+  transition: color var(--dur), transform var(--dur);
+}
+.sp-back--light { color: rgba(255,255,255,0.45); }
+.sp-back--light:hover { color: rgba(255,255,255,0.9); transform: translateX(-3px); }
+
+.sp-display {
+  font-family: var(--font-serif);
+  font-weight: 400;
+  font-size: clamp(2.4rem, 6vw, 3.8rem);
+  line-height: 1.08;
+  letter-spacing: -0.02em;
+  color: #fff;
+  margin: 0 0 12px;
+}
+.sp-display em {
+  font-style: italic;
+  color: rgba(255,255,255,0.65);
+}
+
+.sp-header-sub {
+  font-size: 0.9rem;
+  color: rgba(255,255,255,0.38);
+  font-weight: 400;
+}
+
+/* ── White body card ── */
+.sp-body {
+  flex: 1;
+  background: var(--c-summit);
+  border-radius: var(--r-xl) var(--r-xl) 0 0;
+  margin-top: -28px;
+  padding: 36px 10% 56px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  box-shadow: 0 -4px 24px rgba(15,25,35,0.12);
+}
+
+/* ── Choice cards ── */
+.sp-choices {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  max-width: 560px;
+}
+
+.sp-choice {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  padding: 24px 22px;
+  background: var(--c-mist);
+  border: 2px solid transparent;
+  border-radius: var(--r-lg);
+  cursor: pointer;
+  font-family: inherit;
+  text-align: left;
+  transition:
+    background var(--dur) var(--ease),
+    border-color var(--dur-md) var(--ease),
+    box-shadow var(--dur-md) var(--ease),
+    transform var(--dur) var(--ease);
+  width: 100%;
+}
+.sp-choice:hover {
+  background: #ece9e3;
+  border-color: var(--c-orange);
+  box-shadow: var(--s-glow), var(--s-sm);
+  transform: translateY(-2px);
+}
+.sp-choice:active {
+  transform: translateY(0) scale(0.98);
+}
+
+.sp-choice-icon {
+  font-size: 1.8rem;
+  width: 56px;
+  height: 56px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--c-summit);
+  border-radius: var(--r-md);
+  box-shadow: var(--s-sm);
+  flex-shrink: 0;
+}
+
+.sp-choice-text {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.sp-choice-text strong {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--c-ink);
+  letter-spacing: -0.01em;
+}
+.sp-choice-text span {
+  font-size: 0.84rem;
+  color: var(--c-stone);
+  font-weight: 400;
+  line-height: 1.45;
+}
+
+.sp-choice-arrow {
+  font-size: 1.1rem;
+  color: var(--c-contour);
+  flex-shrink: 0;
+  transition: color var(--dur), transform var(--dur);
+}
+.sp-choice:hover .sp-choice-arrow {
+  color: var(--c-orange);
+  transform: translateX(3px);
+}
+
+/* ── Responsive ── */
+@media (max-width: 600px) {
+  .sp-header { padding: 24px 24px 48px; }
+  .sp-body { padding: 28px 20px 40px; }
+  .sp-display { font-size: 2.1rem; }
+  .sp-choice { padding: 20px 18px; gap: 14px; }
+  .sp-choice-icon { width: 48px; height: 48px; font-size: 1.5rem; }
+}

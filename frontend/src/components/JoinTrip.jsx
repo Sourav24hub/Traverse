@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { joinTrip } from '../api/mockApi';
 import './JoinTrip.css';
 
-export default function JoinTrip({ onBack }) {
+export default function JoinTrip({ onBack, onSuccess }) {
   const [roomCode, setRoomCode] = useState('');
   const [userName, setUserName] = useState('');
   const [loading, setLoading] = useState(false);
@@ -55,9 +55,20 @@ export default function JoinTrip({ onBack }) {
             </div>
           </div>
 
-          <button className="jt-btn-secondary" onClick={onBack} id="join-trip-done-btn">
-            ← Back to home
-          </button>
+          <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', justifyContent: 'center' }}>
+            <button className="jt-btn-secondary" onClick={onBack} id="join-trip-done-btn">
+              ← Back to home
+            </button>
+            {onSuccess && (
+              <button
+                className="jt-btn-primary"
+                onClick={() => onSuccess({ tripId: result.tripId, userId: result.userId, destination: 'Group Trip', roomCode: roomCode.trim().toUpperCase() })}
+                id="join-trip-itinerary-btn"
+              >
+                View Itinerary →
+              </button>
+            )}
+          </div>
         </div>
       </div>
     );
