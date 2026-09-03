@@ -14,7 +14,7 @@ beforeEach(() => {
 describe("POST /api/trips", () => {
   // ── Happy paths ──────────────────────────
 
-  it("creates a solo trip and returns tripId without roomCode", async () => {
+  it("creates a solo trip and returns tripId + adminUserId without roomCode", async () => {
     const res = await request(app)
       .post("/api/trips")
       .send({
@@ -29,11 +29,13 @@ describe("POST /api/trips", () => {
 
     expect(res.body).toHaveProperty("tripId");
     expect(typeof res.body.tripId).toBe("string");
+    expect(res.body).toHaveProperty("adminUserId");
+    expect(typeof res.body.adminUserId).toBe("string");
     // solo → roomCode must NOT be present
     expect(res.body).not.toHaveProperty("roomCode");
   });
 
-  it("creates a group trip and returns tripId + 6-char roomCode", async () => {
+  it("creates a group trip and returns tripId + adminUserId + 6-char roomCode", async () => {
     const res = await request(app)
       .post("/api/trips")
       .send({
@@ -46,9 +48,28 @@ describe("POST /api/trips", () => {
       .expect(201);
 
     expect(res.body).toHaveProperty("tripId");
+    expect(res.body).toHaveProperty("adminUserId");
     expect(res.body).toHaveProperty("roomCode");
     expect(typeof res.body.roomCode).toBe("string");
     expect(res.body.roomCode).toHaveLength(6);
+  });
+
+  it("trip creator is automatically added as admin member in the store", async () => {
+    const res = await request(app)
+      .post("/api/trips")
+      .send({
+        destination: "Shimla",
+        days: 1,
+        people: 1,
+        userName: "Alice",
+      })
+      .expect(201);
+
+    const trip = store.findById(res.body.tripId);
+    const admin = trip?.members[res.body.adminUserId];
+    expect(admin).toBeDefined();
+    expect(admin?.isAdmin).toBe(true);
+    expect(admin?.userName).toBe("Alice");
   });
 
   it("creates an outing (single-day trip type)", async () => {
@@ -64,6 +85,7 @@ describe("POST /api/trips", () => {
       .expect(201);
 
     expect(res.body).toHaveProperty("tripId");
+    expect(res.body).toHaveProperty("adminUserId");
   });
 
   it("defaults to solo and trip when mode/type are omitted", async () => {
@@ -73,6 +95,7 @@ describe("POST /api/trips", () => {
       .expect(201);
 
     expect(res.body).toHaveProperty("tripId");
+    expect(res.body).toHaveProperty("adminUserId");
     expect(res.body).not.toHaveProperty("roomCode");
   });
 
@@ -152,12 +175,12 @@ describe("POST /api/trips", () => {
    POST /api/trips/join — join a trip
    ════════════════════════════════════════════ */
 describe("POST /api/trips/join", () => {
-  async function createGroupTrip(): Promise<{ tripId: string; roomCode: string }> {
+  async function createGroupTrip(): Promise<{ tripId: string; roomCode: string; adminUserId: string }> {
     const res = await request(app)
       .post("/api/trips")
       .send({ destination: "Ladakh", days: 6, people: 4, mode: "group" })
       .expect(201);
-    return res.body as { tripId: string; roomCode: string };
+    return res.body as { tripId: string; roomCode: string; adminUserId: string };
   }
 
   it("returns tripId and userId when joining with a valid room code", async () => {
@@ -171,6 +194,21 @@ describe("POST /api/trips/join", () => {
     expect(res.body.tripId).toBe(tripId);
     expect(res.body).toHaveProperty("userId");
     expect(typeof res.body.userId).toBe("string");
+  });
+
+  it("joined member is stored as non-admin", async () => {
+    const { tripId, roomCode } = await createGroupTrip();
+
+    const res = await request(app)
+      .post("/api/trips/join")
+      .send({ roomCode, userName: "Priya" })
+      .expect(200);
+
+    const trip = store.findById(tripId);
+    const member = trip?.members[res.body.userId];
+    expect(member).toBeDefined();
+    expect(member?.isAdmin).toBe(false);
+    expect(member?.userName).toBe("Priya");
   });
 
   it("is case-insensitive for room codes", async () => {
@@ -224,5 +262,150 @@ describe("POST /api/trips/join", () => {
 
     expect(res.body.error.code).toBe("MISSING_FIELDS");
     expect(res.body.error.message).toMatch(/userName/i);
+  });
+});
+
+/* ════════════════════════════════════════════
+   GET /api/trips/:tripId/members — list members
+   ════════════════════════════════════════════ */
+describe("GET /api/trips/:tripId/members", () => {
+  it("returns the admin plus joined members with correct isAdmin flags", async () => {
+    // Create group trip
+    const createRes = await request(app)
+      .post("/api/trips")
+      .send({ destination: "Manali", days: 3, people: 4, mode: "group", userName: "Leader" })
+      .expect(201);
+    const { tripId, roomCode, adminUserId } = createRes.body;
+
+    // Join 2 members
+    const j1 = await request(app).post("/api/trips/join").send({ roomCode, userName: "Priya" });
+    const j2 = await request(app).post("/api/trips/join").send({ roomCode, userName: "Raj" });
+
+    // Get member list
+    const res = await request(app)
+      .get(`/api/trips/${tripId}/members`)
+      .expect(200);
+
+    expect(res.body.tripId).toBe(tripId);
+    expect(res.body.members).toHaveLength(3);
+
+    const admin = res.body.members.find((m: any) => m.userId === adminUserId);
+    expect(admin).toBeDefined();
+    expect(admin.isAdmin).toBe(true);
+    expect(admin.userName).toBe("Leader");
+
+    const priya = res.body.members.find((m: any) => m.userId === j1.body.userId);
+    expect(priya).toBeDefined();
+    expect(priya.isAdmin).toBe(false);
+    expect(priya.userName).toBe("Priya");
+
+    const raj = res.body.members.find((m: any) => m.userId === j2.body.userId);
+    expect(raj).toBeDefined();
+    expect(raj.isAdmin).toBe(false);
+  });
+
+  it("returns 404 TRIP_NOT_FOUND for unknown tripId", async () => {
+    const res = await request(app)
+      .get("/api/trips/nonexistent/members")
+      .expect(404);
+
+    expect(res.body.error.code).toBe("TRIP_NOT_FOUND");
+  });
+});
+
+/* ════════════════════════════════════════════
+   DELETE /api/trips/:tripId/members/:userId — remove a member
+   ════════════════════════════════════════════ */
+describe("DELETE /api/trips/:tripId/members/:userId", () => {
+  /** Helper: creates a group trip with 1 joined member, returns all IDs */
+  async function setupTripWithMember() {
+    const createRes = await request(app)
+      .post("/api/trips")
+      .send({ destination: "Goa", days: 3, people: 4, mode: "group", userName: "Admin" })
+      .expect(201);
+    const { tripId, roomCode, adminUserId } = createRes.body;
+
+    const joinRes = await request(app)
+      .post("/api/trips/join")
+      .send({ roomCode, userName: "Member" })
+      .expect(200);
+    const memberId = joinRes.body.userId;
+
+    return { tripId, adminUserId, memberId, roomCode };
+  }
+
+  it("admin can remove a member successfully", async () => {
+    const { tripId, adminUserId, memberId } = await setupTripWithMember();
+
+    const res = await request(app)
+      .delete(`/api/trips/${tripId}/members/${memberId}`)
+      .send({ adminUserId })
+      .expect(200);
+
+    expect(res.body.tripId).toBe(tripId);
+    expect(res.body.removedUserId).toBe(memberId);
+
+    // Confirm member is gone from the store
+    const trip = store.findById(tripId);
+    expect(trip?.members[memberId]).toBeUndefined();
+  });
+
+  it("returns 403 NOT_AUTHORIZED when a non-admin tries to remove someone", async () => {
+    const { tripId, memberId, roomCode } = await setupTripWithMember();
+
+    // Join another member who will try to do the removal
+    const j2 = await request(app)
+      .post("/api/trips/join")
+      .send({ roomCode, userName: "Imposter" });
+    const imposterId = j2.body.userId;
+
+    const res = await request(app)
+      .delete(`/api/trips/${tripId}/members/${memberId}`)
+      .send({ adminUserId: imposterId })
+      .expect(403);
+
+    expect(res.body.error.code).toBe("NOT_AUTHORIZED");
+  });
+
+  it("returns 400 CANNOT_REMOVE_ADMIN when admin tries to remove themselves", async () => {
+    const { tripId, adminUserId } = await setupTripWithMember();
+
+    const res = await request(app)
+      .delete(`/api/trips/${tripId}/members/${adminUserId}`)
+      .send({ adminUserId })
+      .expect(400);
+
+    expect(res.body.error.code).toBe("CANNOT_REMOVE_ADMIN");
+  });
+
+  it("returns 404 MEMBER_NOT_FOUND when target user is not a member", async () => {
+    const { tripId, adminUserId } = await setupTripWithMember();
+
+    const res = await request(app)
+      .delete(`/api/trips/${tripId}/members/u_nonexistent`)
+      .send({ adminUserId })
+      .expect(404);
+
+    expect(res.body.error.code).toBe("MEMBER_NOT_FOUND");
+  });
+
+  it("returns 404 TRIP_NOT_FOUND for unknown tripId", async () => {
+    const res = await request(app)
+      .delete("/api/trips/bad_trip/members/u_1")
+      .send({ adminUserId: "u_1" })
+      .expect(404);
+
+    expect(res.body.error.code).toBe("TRIP_NOT_FOUND");
+  });
+
+  it("returns 400 MISSING_FIELDS when adminUserId is absent", async () => {
+    const { tripId, memberId } = await setupTripWithMember();
+
+    const res = await request(app)
+      .delete(`/api/trips/${tripId}/members/${memberId}`)
+      .send({})
+      .expect(400);
+
+    expect(res.body.error.code).toBe("MISSING_FIELDS");
   });
 });
