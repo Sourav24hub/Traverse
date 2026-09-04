@@ -248,6 +248,40 @@ git push origin backend-dev
 { "tripId": "abc123", "points": 120, "completed": true }
 ```
 
+### 9.5.1 Trip Members
+
+**`POST /api/trips`** now also returns `adminUserId` — the trip creator is automatically added as the admin member:
+```json
+// Response (updated from §9.1)
+{ "tripId": "abc123", "adminUserId": "u_789", "roomCode": "X72K9P" }
+```
+
+**`GET /api/trips/{tripId}/members`** — list all trip members
+```json
+// Response
+{
+  "tripId": "abc123",
+  "members": [
+    { "userId": "u_789", "userName": "Alice", "isAdmin": true },
+    { "userId": "u_456", "userName": "Priya", "isAdmin": false }
+  ]
+}
+```
+
+**`DELETE /api/trips/{tripId}/members/{userId}`** — remove a member (admin only)
+```json
+// Request body
+{ "adminUserId": "u_789" }
+
+// Success response
+{ "tripId": "abc123", "removedUserId": "u_456" }
+```
+
+Error codes specific to this endpoint:
+- `403 NOT_AUTHORIZED` — requester is not the trip admin
+- `400 CANNOT_REMOVE_ADMIN` — admin tried to remove themselves
+- `404 MEMBER_NOT_FOUND` — target user is not a member of the trip
+
 ### 9.6 Error Convention
 
 All endpoints return errors in a consistent shape:

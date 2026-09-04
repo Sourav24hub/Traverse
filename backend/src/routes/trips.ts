@@ -1,8 +1,10 @@
 /**
  * Trip routes — implements section 9.1 of PROJECT_SPEC.md
  *
- *   POST /api/trips       — create a trip
- *   POST /api/trips/join  — join an existing group trip
+ *   POST   /api/trips                       — create a trip
+ *   POST   /api/trips/join                  — join an existing group trip
+ *   GET    /api/trips/:tripId/members       — list trip members
+ *   DELETE /api/trips/:tripId/members/:userId — remove a member (admin only)
  */
 import { Router, Request, Response } from "express";
 import { store } from "../models/store.js";
@@ -46,8 +48,18 @@ router.post("/", (req: Request, res: Response) => {
   }
 
   const tripId = generateId("trip");
+  const adminUserId = generateId("u");
   const resolvedMode: "solo" | "group" = mode === "group" ? "group" : "solo";
   const roomCode = resolvedMode === "group" ? generateRoomCode() : undefined;
+
+  // The trip creator is automatically the admin member
+  const members: Record<string, { userId: string; userName: string; isAdmin: boolean }> = {
+    [adminUserId]: {
+      userId: adminUserId,
+      userName: req.body.userName ?? "Admin",
+      isAdmin: true,
+    },
+  };
 
   store.save({
     tripId,
@@ -58,13 +70,15 @@ router.post("/", (req: Request, res: Response) => {
     people,
     prompt: prompt ?? undefined,
     roomCode,
-    members: {},
+    members,
     createdAt: new Date().toISOString(),
   });
 
-  // Response shape from spec §9.1
-  // roomCode is omitted (not included as null) for solo trips
-  const responseBody: { tripId: string; roomCode?: string } = { tripId };
+  // Response — includes adminUserId so the creator can identify themselves
+  const responseBody: { tripId: string; adminUserId: string; roomCode?: string } = {
+    tripId,
+    adminUserId,
+  };
   if (roomCode) responseBody.roomCode = roomCode;
 
   return res.status(201).json(responseBody);
@@ -89,11 +103,73 @@ router.post("/join", (req: Request, res: Response) => {
   }
 
   const userId = generateId("u");
-  trip.members[userId] = String(userName);
+  trip.members[userId] = {
+    userId,
+    userName: String(userName),
+    isAdmin: false,
+  };
   store.save(trip); // persist the updated member list
 
   // Response shape from spec §9.1
   return res.status(200).json({ tripId: trip.tripId, userId });
+});
+
+/* ─────────────────────────────────────────────
+   GET /api/trips/:tripId/members — list members
+   ───────────────────────────────────────────── */
+router.get("/:tripId/members", (req: Request, res: Response) => {
+  const { tripId } = req.params;
+
+  const trip = store.findById(tripId);
+  if (!trip) {
+    return sendError(res, 404, "TRIP_NOT_FOUND", "No trip with that ID.");
+  }
+
+  const memberList = Object.values(trip.members).map((m) => ({
+    userId: m.userId,
+    userName: m.userName,
+    isAdmin: m.isAdmin,
+  }));
+
+  return res.json({ tripId, members: memberList });
+});
+
+/* ─────────────────────────────────────────────
+   DELETE /api/trips/:tripId/members/:userId — remove a member (admin only)
+   ───────────────────────────────────────────── */
+router.delete("/:tripId/members/:userId", (req: Request, res: Response) => {
+  const { tripId, userId } = req.params;
+  const { adminUserId } = req.body ?? {};
+
+  if (!adminUserId) {
+    return sendError(res, 400, "MISSING_FIELDS", "The following fields are required: adminUserId.");
+  }
+
+  const trip = store.findById(tripId);
+  if (!trip) {
+    return sendError(res, 404, "TRIP_NOT_FOUND", "No trip with that ID.");
+  }
+
+  // Verify the requester is the actual admin
+  const admin = trip.members[adminUserId];
+  if (!admin || !admin.isAdmin) {
+    return sendError(res, 403, "NOT_AUTHORIZED", "Only the trip admin can remove members.");
+  }
+
+  // Admin cannot remove themselves
+  if (userId === adminUserId) {
+    return sendError(res, 400, "CANNOT_REMOVE_ADMIN", "The admin cannot remove themselves from the trip.");
+  }
+
+  // Check target member exists
+  if (!trip.members[userId]) {
+    return sendError(res, 404, "MEMBER_NOT_FOUND", "No member with that ID in this trip.");
+  }
+
+  delete trip.members[userId];
+  store.save(trip);
+
+  return res.json({ tripId, removedUserId: userId });
 });
 
 export default router;

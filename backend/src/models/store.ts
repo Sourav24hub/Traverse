@@ -32,6 +32,12 @@ export interface UserLocation {
   timestamp: string;
 }
 
+export interface Member {
+  userId: string;
+  userName: string;
+  isAdmin: boolean;
+}
+
 export interface Trip {
   tripId: string;
   type: "trip" | "outing";
@@ -42,8 +48,8 @@ export interface Trip {
   prompt?: string;
   /** Only present for group trips */
   roomCode?: string;
-  /** Map of userId → userName for members who joined */
-  members: Record<string, string>;
+  /** Map of userId → Member for trip participants */
+  members: Record<string, Member>;
   createdAt: string;
   /** Set after POST /api/itinerary/generate is called */
   itinerary?: Itinerary;
