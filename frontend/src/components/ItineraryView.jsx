@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { generateItinerary } from '../api/itineraryApi';
 import { updateLocation } from '../api/locationApi';
+import { getMembers, removeMember } from '../api/membersApi';
 import './ItineraryView.css';
 
 /* ── Type badge metadata ── */
@@ -70,7 +71,15 @@ function LocationBadge({ status, error, isSyncing, lastUpdated }) {
 /* ══════════════════════════════════════════════════════
    Main component
    ══════════════════════════════════════════════════════ */
-export default function ItineraryView({ tripId, destination, roomCode, userId: propUserId, onBack }) {
+export default function ItineraryView({ tripId, destination, roomCode, userId: propUserId, mode, onBack }) {
+  const isGroup = mode === 'group' || Boolean(roomCode);
+
+  /* ── User identification ── */
+  const storedAdminId = typeof window !== 'undefined' ? sessionStorage.getItem(`traverse_admin_${tripId}`) : null;
+  const storedCurrentUserId = typeof window !== 'undefined' ? sessionStorage.getItem('traverse_current_userId') : null;
+  const currentUserId = propUserId || storedCurrentUserId || storedAdminId || getSessionUserId();
+  const userId = useRef(currentUserId).current;
+
   /* ── Itinerary state ── */
   const [itinerary, setItinerary] = useState(null);
   const [loading, setLoading]     = useState(true);
@@ -87,6 +96,56 @@ export default function ItineraryView({ tripId, destination, roomCode, userId: p
     setTimeout(() => setCopiedCode(false), 2000);
   };
 
+  /* ── Group Members state (PROJECT_SPEC.md §9.5.1) ── */
+  const [members, setMembers] = useState([]);
+  const [membersLoading, setMembersLoading] = useState(false);
+  const [membersError, setMembersError] = useState(null);
+  const [actionError, setActionError] = useState(null);
+  const [removingUserId, setRemovingUserId] = useState(null);
+
+  const loadMembers = useCallback(async () => {
+    if (!isGroup) return;
+    setMembersLoading(true);
+    setMembersError(null);
+    const res = await getMembers(tripId);
+    setMembersLoading(false);
+
+    if (!res.ok) {
+      setMembersError(res.data?.error || { code: 'LOAD_FAILED', message: 'Failed to load trip members.' });
+    } else {
+      setMembers(res.data.members || []);
+    }
+  }, [tripId, isGroup]);
+
+  useEffect(() => {
+    if (isGroup) {
+      loadMembers();
+    }
+  }, [isGroup, loadMembers]);
+
+  // Check if current user is admin
+  const isCurrentUserAdmin =
+    (storedAdminId && (storedAdminId === userId || storedAdminId === propUserId)) ||
+    members.some((m) => (m.userId === userId || m.userId === propUserId || m.userId === storedAdminId) && m.isAdmin);
+
+  async function handleRemoveMember(targetUserId) {
+    setActionError(null);
+    setRemovingUserId(targetUserId);
+
+    const adminMember = members.find((m) => m.isAdmin);
+    const adminIdToSend = adminMember ? adminMember.userId : (storedAdminId || userId);
+
+    const res = await removeMember(tripId, targetUserId, adminIdToSend);
+    setRemovingUserId(null);
+
+    if (!res.ok) {
+      setActionError(res.data?.error || { code: 'REMOVE_FAILED', message: 'Failed to remove member.' });
+    } else {
+      // Immediate refresh as required by Requirement 5
+      await loadMembers();
+    }
+  }
+
   /* ── Location tracking state ── */
   // 'idle' | 'asking' | 'tracking' | 'denied' | 'unavail' | 'error'
   const [locStatus, setLocStatus]   = useState('idle');
@@ -97,7 +156,6 @@ export default function ItineraryView({ tripId, destination, roomCode, userId: p
   const [recentlyReached, setRecentlyReached] = useState(new Set()); // itemIds flashed green
 
   const intervalRef  = useRef(null);
-  const userId       = useRef(propUserId || getSessionUserId()).current;
 
   /* ─────────────────────────────────
      Load itinerary on mount
@@ -451,6 +509,110 @@ export default function ItineraryView({ tripId, destination, roomCode, userId: p
             </div>
           ))}
         </div>
+
+        {/* ── Group Members Section (spec §9.5.1) ── */}
+        {isGroup && (
+          <section className="iv-members-card" id="group-members-section" aria-label="Group Members">
+            <div className="iv-members-header">
+              <div className="iv-members-title-wrap">
+                <span className="iv-members-icon" aria-hidden="true">👥</span>
+                <h3 className="iv-members-title">Group Members</h3>
+                <span className="iv-members-count">{members.length}</span>
+              </div>
+              {isCurrentUserAdmin && (
+                <span className="iv-admin-indicator-chip" title="You are the trip admin">
+                  Trip Admin
+                </span>
+              )}
+            </div>
+
+            {membersError && (
+              <div className="iv-members-alert iv-members-alert--error" role="alert">
+                <span className="iv-members-alert-icon">⚠️</span>
+                <div>
+                  <strong>{membersError.code}</strong>
+                  <p>{membersError.message}</p>
+                </div>
+              </div>
+            )}
+
+            {actionError && (
+              <div className="iv-members-alert iv-members-alert--error" role="alert">
+                <span className="iv-members-alert-icon">⚠️</span>
+                <div className="iv-members-alert-body">
+                  <strong>{actionError.code}</strong>
+                  <p>{actionError.message}</p>
+                </div>
+                <button
+                  type="button"
+                  className="iv-members-alert-dismiss"
+                  onClick={() => setActionError(null)}
+                  title="Dismiss error"
+                >
+                  ✕
+                </button>
+              </div>
+            )}
+
+            {membersLoading && members.length === 0 ? (
+              <div className="iv-members-loading">
+                <div className="iv-skel iv-skel--member" />
+                <div className="iv-skel iv-skel--member" />
+              </div>
+            ) : members.length === 0 ? (
+              <p className="iv-members-empty">No members found.</p>
+            ) : (
+              <div className="iv-members-list">
+                {members.map((member) => {
+                  const isThisMemberAdmin = Boolean(member.isAdmin);
+                  const isSelf = member.userId === userId || member.userId === propUserId;
+                  const canRemove = isCurrentUserAdmin && !isThisMemberAdmin;
+
+                  return (
+                    <div
+                      key={member.userId}
+                      className={`iv-member-row ${isThisMemberAdmin ? 'iv-member-row--admin' : ''}`}
+                      id={`member-${member.userId}`}
+                    >
+                      <div className="iv-member-profile">
+                        <div className={`iv-member-avatar ${isThisMemberAdmin ? 'iv-member-avatar--admin' : ''}`}>
+                          {member.userName ? member.userName.charAt(0).toUpperCase() : '👤'}
+                        </div>
+                        <div className="iv-member-meta">
+                          <div className="iv-member-name-row">
+                            <span className="iv-member-name">{member.userName}</span>
+                            {isThisMemberAdmin && (
+                              <span className="iv-member-admin-tag">Admin</span>
+                            )}
+                            {isSelf && (
+                              <span className="iv-member-you-tag">You</span>
+                            )}
+                          </div>
+                          <span className="iv-member-id">ID: {member.userId}</span>
+                        </div>
+                      </div>
+
+                      <div className="iv-member-actions">
+                        {canRemove && (
+                          <button
+                            type="button"
+                            className="iv-member-remove-btn"
+                            onClick={() => handleRemoveMember(member.userId)}
+                            disabled={removingUserId === member.userId}
+                            id={`remove-member-${member.userId}`}
+                            title={`Remove ${member.userName} from trip`}
+                          >
+                            {removingUserId === member.userId ? 'Removing…' : 'Remove'}
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </section>
+        )}
 
         {/* Back button */}
         <button className="iv-btn-secondary" onClick={onBack}>

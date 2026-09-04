@@ -97,14 +97,19 @@ export default function TripDetails({ mode, type, onBack, onSuccess }) {
       return;
     }
 
-    const { tripId, roomCode } = res.data;
+    const { tripId, roomCode, adminUserId } = res.data;
+
+    if (adminUserId) {
+      sessionStorage.setItem(`traverse_admin_${tripId}`, adminUserId);
+      sessionStorage.setItem('traverse_current_userId', adminUserId);
+    }
 
     if (isGroup && roomCode) {
       // Show room code success screen inline before going to itinerary
-      setSuccess({ tripId, roomCode });
+      setSuccess({ tripId, roomCode, adminUserId });
     } else {
       // Solo — go straight to itinerary
-      onSuccess({ tripId, destination: destination.trim(), roomCode: null });
+      onSuccess({ tripId, destination: destination.trim(), roomCode: null, userId: adminUserId, mode: 'solo' });
     }
   }
 
@@ -121,6 +126,8 @@ export default function TripDetails({ mode, type, onBack, onSuccess }) {
       tripId: success.tripId,
       destination: destination.trim(),
       roomCode: success.roomCode,
+      userId: success.adminUserId,
+      mode: 'group',
     });
   }
 

@@ -22,6 +22,9 @@ export default function JoinTrip({ onBack, onSuccess }) {
     if (!res.ok) {
       setError(res.data.error);
     } else {
+      if (res.data?.userId) {
+        sessionStorage.setItem('traverse_current_userId', res.data.userId);
+      }
       setResult(res.data);
     }
   }
@@ -62,7 +65,7 @@ export default function JoinTrip({ onBack, onSuccess }) {
             {onSuccess && (
               <button
                 className="jt-btn-primary"
-                onClick={() => onSuccess({ tripId: result.tripId, userId: result.userId, destination: 'Group Trip', roomCode: roomCode.trim().toUpperCase() })}
+                onClick={() => onSuccess({ tripId: result.tripId, userId: result.userId, destination: 'Group Trip', roomCode: roomCode.trim().toUpperCase(), mode: 'group' })}
                 id="join-trip-itinerary-btn"
               >
                 View Itinerary →

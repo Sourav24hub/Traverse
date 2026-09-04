@@ -57,8 +57,8 @@ function App() {
     setScreen('details')
   }
 
-  function handleTripSuccess({ tripId, destination, roomCode, userId }) {
-    setTripContext({ tripId, destination, roomCode, userId })
+  function handleTripSuccess({ tripId, destination, roomCode, userId, mode }) {
+    setTripContext({ tripId, destination, roomCode, userId, mode: mode || tripMode })
     // For group trips: show success with room code first (handled inside TripDetails)
     // Then navigate to itinerary after user clicks "View Itinerary"
     setScreen('itinerary')
@@ -169,6 +169,7 @@ function App() {
           destination={tripContext.destination}
           roomCode={tripContext.roomCode}
           userId={tripContext.userId}
+          mode={tripContext.mode || tripMode}
           onBack={() => setScreen('welcome')}
         />
       )}

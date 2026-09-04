@@ -508,3 +508,273 @@
   }
 }
 
+/* ══════════════════════════════════════
+   GROUP MEMBERS SECTION (Section 9.5.1)
+   ══════════════════════════════════════ */
+.iv-members-card {
+  background: var(--c-mist);
+  border-radius: var(--r-lg);
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  border: 1px solid rgba(15, 25, 35, 0.06);
+  margin-top: 10px;
+}
+
+.iv-members-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.iv-members-title-wrap {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.iv-members-icon {
+  font-size: 1.25rem;
+}
+
+.iv-members-title {
+  font-family: var(--font-ui);
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--c-ink);
+  margin: 0;
+  letter-spacing: -0.01em;
+}
+
+.iv-members-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2px 8px;
+  background: var(--c-summit);
+  border-radius: var(--r-pill);
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--c-stone);
+  box-shadow: var(--s-xs);
+}
+
+.iv-admin-indicator-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 12px;
+  background: rgba(232, 96, 44, 0.08);
+  border: 1px solid rgba(232, 96, 44, 0.2);
+  border-radius: var(--r-pill);
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--c-orange-dk);
+}
+
+/* Members error/alert */
+.iv-members-alert {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px 16px;
+  border-radius: var(--r);
+  font-size: 0.84rem;
+  line-height: 1.45;
+  animation: slide-down 0.25s var(--ease) both;
+}
+
+.iv-members-alert--error {
+  background: var(--c-error-bg);
+  border: 1px solid var(--c-error-bd);
+  color: var(--c-error-tx);
+}
+
+.iv-members-alert-icon {
+  font-size: 1rem;
+  flex-shrink: 0;
+}
+
+.iv-members-alert-body {
+  flex: 1;
+}
+
+.iv-members-alert strong {
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--c-error);
+  display: block;
+}
+
+.iv-members-alert p {
+  margin: 2px 0 0;
+}
+
+.iv-members-alert-dismiss {
+  background: none;
+  border: none;
+  font-size: 0.9rem;
+  color: var(--c-error-tx);
+  cursor: pointer;
+  padding: 0 4px;
+  opacity: 0.6;
+  transition: opacity var(--dur);
+}
+.iv-members-alert-dismiss:hover {
+  opacity: 1;
+}
+
+/* Skeleton for members */
+.iv-skel--member {
+  height: 60px;
+  width: 100%;
+  border-radius: var(--r-md);
+  margin-bottom: 8px;
+}
+
+/* Member list */
+.iv-members-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.iv-member-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  background: var(--c-summit);
+  border-radius: var(--r-md);
+  border: 1px solid rgba(15, 25, 35, 0.05);
+  box-shadow: var(--s-xs);
+  transition: box-shadow var(--dur) var(--ease), transform var(--dur) var(--ease);
+}
+.iv-member-row:hover {
+  box-shadow: var(--s-sm);
+  transform: translateY(-1px);
+}
+
+.iv-member-profile {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.iv-member-avatar {
+  width: 38px;
+  height: 38px;
+  border-radius: var(--r-pill);
+  background: var(--c-mist);
+  color: var(--c-ink);
+  font-family: var(--font-ui);
+  font-size: 0.95rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(15, 25, 35, 0.08);
+  flex-shrink: 0;
+}
+
+.iv-member-avatar--admin {
+  background: rgba(232, 96, 44, 0.1);
+  color: var(--c-orange-dk);
+  border-color: rgba(232, 96, 44, 0.25);
+}
+
+.iv-member-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.iv-member-name-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.iv-member-name {
+  font-family: var(--font-ui);
+  font-size: 0.92rem;
+  font-weight: 600;
+  color: var(--c-ink);
+}
+
+.iv-member-admin-tag {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: var(--r-pill);
+  background: rgba(232, 96, 44, 0.1);
+  color: var(--c-orange-dk);
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.iv-member-you-tag {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: var(--r-pill);
+  background: var(--c-mist);
+  color: var(--c-stone);
+  font-size: 0.68rem;
+  font-weight: 600;
+  border: 1px solid rgba(15, 25, 35, 0.08);
+}
+
+.iv-member-id {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  color: var(--c-contour);
+}
+
+/* Remove button */
+.iv-member-remove-btn {
+  height: 32px;
+  padding: 0 14px;
+  border-radius: var(--r-pill);
+  background: transparent;
+  border: 1px solid rgba(220, 38, 38, 0.25);
+  color: var(--c-error-tx);
+  font-family: var(--font-ui);
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    background var(--dur) var(--ease),
+    color var(--dur) var(--ease),
+    border-color var(--dur) var(--ease),
+    transform var(--dur) var(--ease);
+}
+.iv-member-remove-btn:hover:not(:disabled) {
+  background: var(--c-error-bg);
+  border-color: var(--c-error);
+  color: var(--c-error);
+  transform: translateY(-1px);
+}
+.iv-member-remove-btn:active:not(:disabled) {
+  transform: translateY(0) scale(0.96);
+}
+.iv-member-remove-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.iv-members-empty {
+  font-size: 0.85rem;
+  color: var(--c-contour);
+  margin: 0;
+  font-style: italic;
+}
+
