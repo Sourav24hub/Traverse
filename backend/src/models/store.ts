@@ -57,6 +57,8 @@ export interface Trip {
   latestLocations?: Record<string, UserLocation>;
   /** Map of userId → array of historical UserLocations */
   locationHistory?: Record<string, UserLocation[]>;
+  /** UserNames blocked from rejoining this trip (lowercase-normalised) */
+  blockedUserNames?: string[];
 }
 
 /** Keyed by tripId */
@@ -87,5 +89,19 @@ export const store = {
   clear(): void {
     trips.clear();
     roomCodeIndex.clear();
+  },
+
+  getAllTrips(): Trip[] {
+    return Array.from(trips.values());
+  },
+
+  deleteTrip(tripId: string): void {
+    const trip = trips.get(tripId);
+    if (trip) {
+      if (trip.roomCode) {
+        roomCodeIndex.delete(trip.roomCode);
+      }
+      trips.delete(tripId);
+    }
   },
 };

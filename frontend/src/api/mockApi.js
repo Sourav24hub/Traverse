@@ -12,6 +12,18 @@
 
 const API_BASE = '/api';
 
+function getHeaders() {
+  const headers = { 'Content-Type': 'application/json' };
+  const session = sessionStorage.getItem('traverse_auth_session');
+  if (session) {
+    try {
+      const { accessToken } = JSON.parse(session);
+      if (accessToken) headers['Authorization'] = `Bearer ${accessToken}`;
+    } catch (e) {}
+  }
+  return headers;
+}
+
 /**
  * POST /api/trips — create a new trip
  *
@@ -25,7 +37,7 @@ export async function createTrip({ type, mode, destination, days, people, prompt
   try {
     const res = await fetch(`${API_BASE}/trips`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: getHeaders(),
       body: JSON.stringify({ type, mode, destination, days, people, prompt }),
     });
 
@@ -63,7 +75,7 @@ export async function joinTrip({ roomCode, userName }) {
   try {
     const res = await fetch(`${API_BASE}/trips/join`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: getHeaders(),
       body: JSON.stringify({ roomCode, userName }),
     });
 
@@ -86,3 +98,64 @@ export async function joinTrip({ roomCode, userName }) {
     };
   }
 }
+
+/**
+ * GET /api/trips/:tripId/members — list members
+ */
+export async function getMembers(tripId) {
+  try {
+    const res = await fetch(`${API_BASE}/trips/${encodeURIComponent(tripId)}/members`);
+    const data = await res.json();
+    if (!res.ok) return { ok: false, data };
+    return { ok: true, data };
+  } catch (err) {
+    return { ok: false, data: { error: { code: 'NETWORK_ERROR', message: err.message } } };
+  }
+}
+
+/**
+ * DELETE /api/trips/:tripId/members/:userId — remove a member
+ */
+export async function removeMember(tripId, targetUserId, adminUserId) {
+  try {
+    const res = await fetch(`${API_BASE}/trips/${encodeURIComponent(tripId)}/members/${encodeURIComponent(targetUserId)}`, {
+      method: 'DELETE',
+      headers: getHeaders(),
+      body: JSON.stringify({ adminUserId }),
+    });
+    const data = await res.json();
+    if (!res.ok) return { ok: false, data };
+    return { ok: true, data };
+  } catch (err) {
+    return { ok: false, data: { error: { code: 'NETWORK_ERROR', message: err.message } } };
+  }
+}
+
+export async function getUserTrips(userId) {
+  try {
+    const res = await fetch(`${API_BASE}/users/${encodeURIComponent(userId)}/trips`, {
+      headers: getHeaders(),
+    });
+    const data = await res.json();
+    if (!res.ok) return { ok: false, data };
+    return { ok: true, data };
+  } catch (err) {
+    return { ok: false, data: { error: { code: 'NETWORK_ERROR', message: err.message } } };
+  }
+}
+
+export async function deleteTrip(tripId, adminUserId) {
+  try {
+    const res = await fetch(`${API_BASE}/trips/${encodeURIComponent(tripId)}`, {
+      method: 'DELETE',
+      headers: getHeaders(),
+      body: JSON.stringify({ adminUserId }),
+    });
+    const data = await res.json();
+    if (!res.ok) return { ok: false, data };
+    return { ok: true, data };
+  } catch (err) {
+    return { ok: false, data: { error: { code: 'NETWORK_ERROR', message: err.message } } };
+  }
+}
+

@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { generateItinerary } from '../api/itineraryApi';
+import { generateItinerary, getItinerary } from '../api/itineraryApi';
 import { updateLocation } from '../api/locationApi';
+import { getMembers, removeMember } from '../api/mockApi';
 import './ItineraryView.css';
 
 /* ── Type badge metadata ── */
@@ -96,8 +97,14 @@ export default function ItineraryView({ tripId, destination, roomCode, userId: p
   const [lastCoords, setLastCoords]   = useState(null);
   const [recentlyReached, setRecentlyReached] = useState(new Set()); // itemIds flashed green
 
-  const intervalRef  = useRef(null);
-  const userId       = useRef(propUserId || getSessionUserId()).current;
+  const [showMembers, setShowMembers] = useState(false);
+  const [members, setMembers] = useState([]);
+  const [membersLoading, setMembersLoading] = useState(false);
+  const [membersError, setMembersError] = useState(null);
+
+  const intervalRef      = useRef(null);
+  const flashTimeoutRef  = useRef(null);
+  const userId           = useRef(propUserId || getSessionUserId()).current;
 
   /* ─────────────────────────────────
      Load itinerary on mount
@@ -108,9 +115,18 @@ export default function ItineraryView({ tripId, destination, roomCode, userId: p
     async function load() {
       setLoading(true);
       setError(null);
-      const res = await generateItinerary(tripId);
+      
+      let res = await getItinerary(tripId);
       if (cancelled) return;
+      
+      // If 404 ITINERARY_NOT_FOUND, generate it
+      if (!res.ok && res.data?.error?.code === 'ITINERARY_NOT_FOUND') {
+        res = await generateItinerary(tripId);
+        if (cancelled) return;
+      }
+      
       setLoading(false);
+      
       if (!res.ok) {
         setError(res.data.error);
       } else {
@@ -165,7 +181,14 @@ export default function ItineraryView({ tripId, destination, roomCode, userId: p
 
     // Flash the reached items with a brief highlight
     setRecentlyReached(new Set(reached));
-    setTimeout(() => setRecentlyReached(new Set()), 3000);
+    
+    if (flashTimeoutRef.current) {
+      clearTimeout(flashTimeoutRef.current);
+    }
+    flashTimeoutRef.current = setTimeout(() => {
+      setRecentlyReached(new Set());
+      flashTimeoutRef.current = null;
+    }, 3000);
   }, [tripId, userId]);
 
   /* ─────────────────────────────────
@@ -217,6 +240,40 @@ export default function ItineraryView({ tripId, destination, roomCode, userId: p
       { enableHighAccuracy: true, timeout: 12000 }
     );
   }, [sendLocationUpdate]);
+
+  /* ─────────────────────────────────
+     Members List functionality
+     ───────────────────────────────── */
+  const fetchMembers = useCallback(async () => {
+    setMembersLoading(true);
+    setMembersError(null);
+    const res = await getMembers(tripId);
+    setMembersLoading(false);
+    if (!res.ok) {
+      setMembersError(res.data?.error?.message || 'Failed to load members');
+    } else {
+      setMembers(res.data.members || []);
+    }
+  }, [tripId]);
+
+  useEffect(() => {
+    if (showMembers) {
+      fetchMembers();
+    }
+  }, [showMembers, fetchMembers]);
+
+  const handleRemoveMember = async (targetUserId) => {
+    const res = await removeMember(tripId, targetUserId, userId);
+    if (!res.ok) {
+      alert(`Failed to remove member: ${res.data?.error?.message}`);
+    } else {
+      setMembers(prev => prev.filter(m => m.userId !== targetUserId));
+      // If we removed ourselves (which admin can't do per backend, but just in case)
+      if (targetUserId === userId) {
+        onBack();
+      }
+    }
+  };
 
   /* ─────────────────────────────────
      Clean up interval on unmount
@@ -325,21 +382,31 @@ export default function ItineraryView({ tripId, destination, roomCode, userId: p
       <header className="iv-header">
         <div className="iv-header-top">
           <button type="button" className="iv-back iv-back--light" onClick={onBack}>← Back</button>
-          {roomCode && (
-            <div className="iv-room-chip" id="itinerary-room-chip">
-              <span className="iv-room-chip-label">Room</span>
-              <span className="iv-room-chip-code">{roomCode}</span>
-              <button
-                type="button"
-                className="iv-room-chip-copy"
-                onClick={copyRoomCode}
-                title="Copy room code"
-                id="copy-room-code-chip"
-              >
-                {copiedCode ? '✓ Copied' : 'Copy'}
-              </button>
-            </div>
-          )}
+          <div style={{ display: 'flex', gap: '8px' }}>
+            {roomCode && (
+              <div className="iv-room-chip" id="itinerary-room-chip">
+                <span className="iv-room-chip-label">Room</span>
+                <span className="iv-room-chip-code">{roomCode}</span>
+                <button
+                  type="button"
+                  className="iv-room-chip-copy"
+                  onClick={copyRoomCode}
+                  title="Copy room code"
+                  id="copy-room-code-chip"
+                >
+                  {copiedCode ? '✓ Copied' : 'Copy'}
+                </button>
+              </div>
+            )}
+            <button
+              className="iv-btn-secondary"
+              style={{ padding: '0 12px', fontSize: '13px', background: 'rgba(255,255,255,0.1)', color: '#fff', border: 'none' }}
+              onClick={() => setShowMembers(true)}
+              id="view-members-btn"
+            >
+              👥 Members
+            </button>
+          </div>
         </div>
         <h1 className="iv-display">
           {destination}<br />
@@ -349,6 +416,44 @@ export default function ItineraryView({ tripId, destination, roomCode, userId: p
           {days.length} day{days.length !== 1 ? 's' : ''} · {totalStops} stops · {completedStops} reached
         </p>
       </header>
+
+      {/* Members Modal */}
+      {showMembers && (
+        <div className="iv-modal-overlay" style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100 }}>
+          <div className="iv-modal" style={{ background: '#fff', padding: '24px', borderRadius: '12px', width: '90%', maxWidth: '400px', color: '#111' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+              <h2 style={{ margin: 0, fontSize: '20px' }}>Trip Members</h2>
+              <button onClick={() => setShowMembers(false)} style={{ background: 'none', border: 'none', fontSize: '20px', cursor: 'pointer' }}>×</button>
+            </div>
+            {membersLoading && <p>Loading members...</p>}
+            {membersError && <p style={{ color: 'red' }}>{membersError}</p>}
+            {!membersLoading && !membersError && members.length === 0 && <p>No members found.</p>}
+            <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              {members.map(m => {
+                const me = members.find(mx => mx.userId === userId);
+                const amIAdmin = me && me.isAdmin;
+                return (
+                  <li key={m.userId} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#f5f5f5', padding: '12px', borderRadius: '8px' }}>
+                    <div>
+                      <strong style={{ display: 'block' }}>{m.userName} {m.userId === userId && '(You)'}</strong>
+                      <small style={{ color: '#666' }}>{m.isAdmin ? 'Admin 👑' : 'Member'}</small>
+                    </div>
+                    {amIAdmin && !m.isAdmin && (
+                      <button 
+                        onClick={() => handleRemoveMember(m.userId)}
+                        style={{ background: '#fee2e2', color: '#dc2626', border: 'none', padding: '6px 12px', borderRadius: '4px', cursor: 'pointer', fontSize: '12px', fontWeight: 'bold' }}
+                        id={`remove-member-${m.userId}`}
+                      >
+                        Remove
+                      </button>
+                    )}
+                  </li>
+                );
+              })}
+            </ul>
+          </div>
+        </div>
+      )}
 
       {/* Body */}
       <div className="iv-body">

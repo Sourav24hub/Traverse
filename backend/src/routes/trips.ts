@@ -48,7 +48,11 @@ router.post("/", (req: Request, res: Response) => {
   }
 
   const tripId = generateId("trip");
-  const adminUserId = generateId("u");
+  
+  // Use authenticated user ID if present, otherwise fallback to generating a random one
+  const adminUserId = req.user?.id ?? generateId("u");
+  const adminUserName = req.user?.username ?? req.body.userName ?? "Admin";
+
   const resolvedMode: "solo" | "group" = mode === "group" ? "group" : "solo";
   const roomCode = resolvedMode === "group" ? generateRoomCode() : undefined;
 
@@ -56,7 +60,7 @@ router.post("/", (req: Request, res: Response) => {
   const members: Record<string, { userId: string; userName: string; isAdmin: boolean }> = {
     [adminUserId]: {
       userId: adminUserId,
-      userName: req.body.userName ?? "Admin",
+      userName: adminUserName,
       isAdmin: true,
     },
   };
@@ -93,7 +97,7 @@ router.post("/join", (req: Request, res: Response) => {
   if (!roomCode) {
     return sendError(res, 400, "MISSING_FIELDS", "The following fields are required: roomCode.");
   }
-  if (!userName) {
+  if (!userName && !req.user?.username) {
     return sendError(res, 400, "MISSING_FIELDS", "The following fields are required: userName.");
   }
 
@@ -102,10 +106,20 @@ router.post("/join", (req: Request, res: Response) => {
     return sendError(res, 404, "ROOM_NOT_FOUND", "No trip found with that room code.");
   }
 
-  const userId = generateId("u");
+  const joinUserName = req.user?.username ?? String(userName);
+
+  // Check if this userName has been blocked (removed by admin)
+  const normalizedName = joinUserName.toLowerCase();
+  if (trip.blockedUserNames && trip.blockedUserNames.includes(normalizedName)) {
+    return sendError(res, 403, "USER_BLOCKED", "You have been removed from this trip by the admin and cannot rejoin.");
+  }
+
+  // Use authenticated user ID if present
+  const userId = req.user?.id ?? generateId("u");
+  
   trip.members[userId] = {
     userId,
-    userName: String(userName),
+    userName: joinUserName,
     isAdmin: false,
   };
   store.save(trip); // persist the updated member list
@@ -166,10 +180,44 @@ router.delete("/:tripId/members/:userId", (req: Request, res: Response) => {
     return sendError(res, 404, "MEMBER_NOT_FOUND", "No member with that ID in this trip.");
   }
 
+  // Add the removed user's name to the blocklist so they cannot rejoin
+  const removedName = trip.members[userId].userName.toLowerCase();
+  if (!trip.blockedUserNames) trip.blockedUserNames = [];
+  if (!trip.blockedUserNames.includes(removedName)) {
+    trip.blockedUserNames.push(removedName);
+  }
+
   delete trip.members[userId];
   store.save(trip);
 
   return res.json({ tripId, removedUserId: userId });
+});
+
+/* ─────────────────────────────────────────────
+   DELETE /api/trips/:tripId — Delete an entire trip (Admin only)
+   ───────────────────────────────────────────── */
+router.delete("/:tripId", (req: Request, res: Response) => {
+  const { tripId } = req.params;
+  const adminUserId = req.user?.id ?? req.body.adminUserId;
+
+  if (!adminUserId) {
+    return sendError(res, 400, "MISSING_FIELDS", "adminUserId is required (via body or Bearer token).");
+  }
+
+  const trip = store.findById(tripId);
+  if (!trip) {
+    return sendError(res, 404, "TRIP_NOT_FOUND", "Trip not found.");
+  }
+
+  const requesterMember = trip.members[adminUserId];
+  if (!requesterMember || !requesterMember.isAdmin) {
+    return sendError(res, 403, "NOT_AUTHORIZED", "Only the trip admin can delete the trip.");
+  }
+
+  // Delete from store completely
+  store.deleteTrip(tripId);
+
+  return res.status(200).json({ tripId, deleted: true });
 });
 
 export default router;

@@ -1,9 +1,13 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import JoinTrip from './components/JoinTrip'
 import ItineraryView from './components/ItineraryView'
 import ModeSelect from './components/ModeSelect'
 import TypeSelect from './components/TypeSelect'
 import TripDetails from './components/TripDetails'
+import Login from './components/Login'
+import Signup from './components/Signup'
+import MyTrips from './components/MyTrips'
+import { AuthProvider, useAuth } from './context/AuthContext'
 import './App.css'
 
 /* ── Topographic contour SVG ── */
@@ -34,18 +38,30 @@ function TopoTexture() {
 
 /*
   Screen state machine:
-    'welcome'   → Page 1 — Welcome / landing
+    'login'     → Login page
+    'signup'    → Signup page
+    'welcome'   → Page 1 — Welcome / landing (auth required)
     'mode'      → Page 2 — Solo or Group
     'type'      → Page 3 — Trip or Outing
     'details'   → Page 4 — Destination / days / people / prompt + backend call
     'join'      → Join Trip flow (Group shortcut from welcome)
     'itinerary' → Itinerary display
 */
-function App() {
+function AppContent() {
+  const { isLoggedIn, logout, user } = useAuth()
   const [screen, setScreen]           = useState('welcome')
   const [tripMode, setTripMode]       = useState(null)  // 'solo' | 'group'
   const [tripType, setTripType]       = useState(null)  // 'trip' | 'outing'
   const [tripContext, setTripContext] = useState(null)  // { tripId, destination, roomCode }
+
+  // Enforce auth
+  useEffect(() => {
+    if (!isLoggedIn && screen !== 'login' && screen !== 'signup') {
+      setScreen('login');
+    } else if (isLoggedIn && (screen === 'login' || screen === 'signup')) {
+      setScreen('welcome');
+    }
+  }, [isLoggedIn, screen]);
 
   function handleModeChosen(mode) {
     setTripMode(mode)
@@ -67,11 +83,19 @@ function App() {
   return (
     <div className="app-shell">
 
+      {/* ══ Auth Screens ══ */}
+      {screen === 'login' && <Login onSignupClick={() => setScreen('signup')} />}
+      {screen === 'signup' && <Signup onLoginClick={() => setScreen('login')} />}
+
       {/* ══ PAGE 1 — Welcome ══ */}
       {screen === 'welcome' && (
         <div className="landing" id="landing-screen">
           <nav className="landing-nav">
             <span className="landing-wordmark">traverse</span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '16px', zIndex: 10 }}>
+              <span style={{ color: 'rgba(255,255,255,0.7)', fontSize: '14px' }}>Hello, {user?.username}</span>
+              <button className="jt-btn-secondary" onClick={logout} style={{ padding: '6px 12px', fontSize: '12px' }}>Log out</button>
+            </div>
           </nav>
 
           <section className="landing-hero">
@@ -103,27 +127,7 @@ function App() {
             </div>
           </section>
 
-          <section className="landing-features">
-            <div className="feature-item">
-              <span className="feature-icon">📍</span>
-              <span className="feature-text">Live location sharing</span>
-            </div>
-            <span className="feature-sep">·</span>
-            <div className="feature-item">
-              <span className="feature-icon">🗺</span>
-              <span className="feature-text">AI route planning</span>
-            </div>
-            <span className="feature-sep">·</span>
-            <div className="feature-item">
-              <span className="feature-icon">🔁</span>
-              <span className="feature-text">Real-time replanning</span>
-            </div>
-            <span className="feature-sep">·</span>
-            <div className="feature-item">
-              <span className="feature-icon">👥</span>
-              <span className="feature-text">Group rooms</span>
-            </div>
-          </section>
+          <MyTrips onTripSelect={handleTripSuccess} />
         </div>
       )}
 
@@ -177,4 +181,10 @@ function App() {
   )
 }
 
-export default App
+export default function App() {
+  return (
+    <AuthProvider>
+      <AppContent />
+    </AuthProvider>
+  )
+}

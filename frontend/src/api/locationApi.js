@@ -50,18 +50,4 @@ export async function updateLocation({ tripId, userId, lat, lng }) {
   }
 }
 
-/**
- * GET /api/location/:tripId
- * Fetches latest known positions for all members.
- *
- * @param {string} tripId
- */
-export async function getLocations(tripId) {
-  try {
-    const res = await fetch(`${BASE}/${encodeURIComponent(tripId)}`);
-    const data = await res.json();
-    return { ok: res.ok, data };
-  } catch (err) {
-    return wrapNetworkError(err);
-  }
-}
+

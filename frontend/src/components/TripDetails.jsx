@@ -29,7 +29,7 @@ export default function TripDetails({ mode, type, onBack, onSuccess }) {
   const [error, setError]             = useState(null);
 
   // Success state — shown inline before navigating to itinerary
-  const [success, setSuccess] = useState(null); // { tripId, roomCode }
+  const [success, setSuccess] = useState(null); // { tripId, roomCode, adminUserId }
   const [copied, setCopied]   = useState(false);
 
   const isSolo   = mode === 'solo';
@@ -97,14 +97,14 @@ export default function TripDetails({ mode, type, onBack, onSuccess }) {
       return;
     }
 
-    const { tripId, roomCode } = res.data;
+    const { tripId, roomCode, adminUserId } = res.data;
 
     if (isGroup && roomCode) {
       // Show room code success screen inline before going to itinerary
-      setSuccess({ tripId, roomCode });
+      setSuccess({ tripId, roomCode, adminUserId });
     } else {
       // Solo — go straight to itinerary
-      onSuccess({ tripId, destination: destination.trim(), roomCode: null });
+      onSuccess({ tripId, userId: adminUserId, destination: destination.trim(), roomCode: null });
     }
   }
 
@@ -119,6 +119,7 @@ export default function TripDetails({ mode, type, onBack, onSuccess }) {
   function proceedToItinerary() {
     onSuccess({
       tripId: success.tripId,
+      userId: success.adminUserId,
       destination: destination.trim(),
       roomCode: success.roomCode,
     });
@@ -209,7 +210,7 @@ export default function TripDetails({ mode, type, onBack, onSuccess }) {
       </header>
 
       <form className="td-form" onSubmit={handleSubmit} id="trip-details-form-el">
-
+        
         {/* Destination */}
         <label className="td-field" id="td-destination-field">
           <span className="td-label">Destination</span>

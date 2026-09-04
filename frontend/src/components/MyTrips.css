@@ -1,0 +1,108 @@
+.my-trips-section {
+  padding: 0 10% 80px;
+  max-width: 900px;
+  position: relative;
+  z-index: 2;
+  margin: 0 auto;
+}
+
+.mt-title {
+  font-family: var(--font-serif);
+  font-size: 2rem;
+  color: #fff;
+  margin-bottom: 24px;
+}
+
+.mt-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 16px;
+}
+
+.mt-card {
+  background: var(--bg-card);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 12px;
+  padding: 20px;
+  cursor: pointer;
+  transition: transform 0.2s, background 0.2s;
+}
+
+.mt-card:hover {
+  background: rgba(255,255,255,0.08);
+  transform: translateY(-2px);
+}
+
+.mt-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 12px;
+}
+
+.mt-dest {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.mt-delete-btn {
+  background: transparent;
+  border: none;
+  color: var(--text-secondary);
+  font-size: 1.1rem;
+  cursor: pointer;
+  padding: 4px;
+  line-height: 1;
+}
+
+.mt-delete-btn:hover {
+  color: #ef4444; /* red for destructive action */
+}
+
+.mt-card-badges {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+}
+
+.mt-badge {
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--text-secondary);
+  font-size: 0.75rem;
+  padding: 4px 8px;
+  border-radius: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.mt-badge-admin {
+  background: rgba(232, 96, 44, 0.2);
+  color: var(--accent);
+}
+
+.mt-badge-joiner {
+  background: rgba(59, 130, 246, 0.2);
+  color: #93c5fd;
+}
+
+.mt-room-code {
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+}
+
+.mt-loading {
+  color: var(--text-secondary);
+  padding: 0 10% 80px;
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.mt-error {
+  color: #ef4444;
+  padding: 0 10% 80px;
+  max-width: 900px;
+  margin: 0 auto;
+}

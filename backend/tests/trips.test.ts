@@ -409,3 +409,55 @@ describe("DELETE /api/trips/:tripId/members/:userId", () => {
     expect(res.body.error.code).toBe("MISSING_FIELDS");
   });
 });
+
+describe('DELETE /api/trips/:tripId', () => {
+  it('deletes trip completely when called by admin', async () => {
+    const createRes = await request(app)
+      .post('/api/trips')
+      .send({ type: 'trip', mode: 'group', destination: 'Tokyo', days: 5, people: 4, userName: 'Admin' })
+      .expect(201);
+    
+    const { tripId, adminUserId } = createRes.body;
+    
+    await request(app)
+      .delete(`/api/trips/${tripId}`)
+      .send({ adminUserId })
+      .expect(200);
+      
+    // Verify it's gone
+    const getRes = await request(app)
+      .get(`/api/users/${adminUserId}/trips`)
+      .expect(200);
+    expect(getRes.body.trips.length).toBe(0);
+  });
+
+  it('returns 403 NOT_AUTHORIZED when called by non-admin', async () => {
+    const createRes = await request(app)
+      .post('/api/trips')
+      .send({ type: 'trip', mode: 'group', destination: 'Tokyo', days: 5, people: 4, userName: 'Admin' })
+      .expect(201);
+    const { tripId, roomCode } = createRes.body;
+    
+    const joinRes = await request(app)
+      .post('/api/trips/join')
+      .send({ roomCode, userName: 'Joiner' })
+      .expect(200);
+    const joinUserId = joinRes.body.userId;
+    
+    const res = await request(app)
+      .delete(`/api/trips/${tripId}`)
+      .send({ adminUserId: joinUserId })
+      .expect(403);
+    
+    expect(res.body.error.code).toBe('NOT_AUTHORIZED');
+  });
+
+  it('returns 404 TRIP_NOT_FOUND for nonexistent trip', async () => {
+    const res = await request(app)
+      .delete('/api/trips/nope')
+      .send({ adminUserId: 'u_123' })
+      .expect(404);
+      
+    expect(res.body.error.code).toBe('TRIP_NOT_FOUND');
+  });
+});

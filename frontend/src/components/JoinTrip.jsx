@@ -4,7 +4,6 @@ import './JoinTrip.css';
 
 export default function JoinTrip({ onBack, onSuccess }) {
   const [roomCode, setRoomCode] = useState('');
-  const [userName, setUserName] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [result, setResult] = useState(null);
@@ -15,12 +14,17 @@ export default function JoinTrip({ onBack, onSuccess }) {
     setError(null);
     setResult(null);
 
-    const res = await joinTrip({ roomCode: roomCode.trim().toUpperCase(), userName: userName.trim() });
+    const res = await joinTrip({ roomCode: roomCode.trim().toUpperCase() });
 
     setLoading(false);
 
     if (!res.ok) {
-      setError(res.data.error);
+      const err = res.data.error;
+      setError(err);
+      // Show a dedicated popup for blocked users
+      if (err?.code === 'USER_BLOCKED') {
+        alert('🚫 You have been removed from this trip by the admin and cannot rejoin.');
+      }
     } else {
       setResult(res.data);
     }
@@ -107,20 +111,6 @@ export default function JoinTrip({ onBack, onSuccess }) {
             id="join-trip-roomcode"
           />
         </div>
-
-        {/* Name */}
-        <label className="jt-field" id="join-trip-name-field">
-          <span className="jt-label">Your Name</span>
-          <input
-            className="jt-input"
-            type="text"
-            placeholder="What should we call you?"
-            required
-            value={userName}
-            onChange={(e) => setUserName(e.target.value)}
-            id="join-trip-username"
-          />
-        </label>
 
         {/* Error */}
         {error && (
