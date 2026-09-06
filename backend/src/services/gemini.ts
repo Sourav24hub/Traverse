@@ -117,3 +117,121 @@ Do NOT include any text outside the JSON array.`;
 
   return itineraryDays;
 }
+
+export interface ReplanItineraryParams {
+  days: ItineraryDay[];
+  prompt: string;
+}
+
+export async function validateReplanPrompt(prompt: string): Promise<{ valid: boolean; reason?: string }> {
+  const systemPrompt = `You are a travel assistant evaluating a user's request to change their itinerary.
+User prompt: "${prompt}"
+
+Determine if this is a valid, actionable request to change something about the trip (e.g. weather issues, road closures, delays, preference changes, or any legitimate trip-modification request).
+If the prompt is irrelevant, nonsensical, or completely unrelated to trip planning (e.g., "what is the meaning of life?", "asdfgh"), mark it as invalid.
+
+Respond ONLY with a valid JSON object:
+{
+  "valid": true | false,
+  "reason": "If invalid, a short explanation of why. If valid, you can leave this empty."
+}`;
+
+  const genAI = getGeminiClient();
+  const model = genAI.getGenerativeModel({ model: "gemini-3.6-flash" });
+  const result = await model.generateContent(systemPrompt);
+  const text = result.response.text().trim();
+  const jsonText = text.replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/, "").trim();
+
+  try {
+    const raw = JSON.parse(jsonText);
+    return {
+      valid: Boolean(raw.valid),
+      reason: raw.reason
+    };
+  } catch {
+    // If Gemini fails to respond with JSON, default to assuming it's valid so we don't block the user.
+    return { valid: true };
+  }
+}
+
+export async function replanItinerary(
+  params: ReplanItineraryParams
+): Promise<{ updatedDays: ItineraryDay[]; reason: string }> {
+  // Extract uncompleted items to pass to Gemini
+  const remainingDays = params.days.map(d => ({
+    day: d.day,
+    items: d.items.filter(i => !i.completed)
+  })).filter(d => d.items.length > 0);
+
+  const systemPrompt = `You are a travel planning assistant helping to replan an ongoing trip.
+User Request: ${params.prompt}
+
+Current remaining itinerary (uncompleted items only):
+${JSON.stringify(remainingDays, null, 2)}
+
+Your task: Re-plan the remaining items in the itinerary based on the user request.
+You can reorder, replace, or add new items. You can keep items that are still feasible.
+Do NOT include completed items. Only return the updated uncompleted items grouped by day.
+
+Respond ONLY with a valid JSON object matching this structure (no markdown fences, no explanation text):
+{
+  "updatedDays": [
+    {
+      "day": <integer, 1-based, matching the original day numbers>,
+      "items": [
+        {
+          "name": "<place or activity name>",
+          "lat": <latitude as number>,
+          "lng": <longitude as number>,
+          "type": "<one of: checkpoint | restaurant | activity | accommodation | transport>",
+          "completed": false
+        }
+      ]
+    }
+  ],
+  "reason": "A short, 1-sentence human-readable explanation of what changed and why."
+}
+`;
+
+  const genAI = getGeminiClient();
+  const model = genAI.getGenerativeModel({ model: "gemini-3.6-flash" });
+  const result = await model.generateContent(systemPrompt);
+  const text = result.response.text().trim();
+
+  const jsonText = text.replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/, "").trim();
+
+  let raw: unknown;
+  try {
+    raw = JSON.parse(jsonText);
+  } catch {
+    throw new Error(`Gemini returned non-JSON response: ${jsonText.slice(0, 200)}`);
+  }
+
+  const typedRaw = raw as { updatedDays?: Record<string, unknown>[]; reason?: string };
+
+  if (!typedRaw || !Array.isArray(typedRaw.updatedDays)) {
+    throw new Error("Gemini response was missing 'updatedDays' array.");
+  }
+
+  const updatedDays: ItineraryDay[] = typedRaw.updatedDays.map((dayObj, idx) => {
+    const dayNum: number = typeof dayObj.day === "number" ? dayObj.day : idx + 1;
+    const rawItems = Array.isArray(dayObj.items) ? (dayObj.items as Record<string, unknown>[]) : [];
+
+    const items: ItineraryItem[] = rawItems.map((it) => ({
+      itemId: generateId("i"),
+      name: String(it.name ?? "Unnamed stop"),
+      lat: Number(it.lat ?? 0),
+      lng: Number(it.lng ?? 0),
+      type: String(it.type ?? "checkpoint"),
+      completed: false,
+    }));
+
+    return { day: dayNum, items };
+  });
+
+  return {
+    updatedDays,
+    reason: String(typedRaw.reason ?? "Itinerary updated."),
+  };
+}
+

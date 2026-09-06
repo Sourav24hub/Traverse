@@ -219,15 +219,22 @@ git push origin backend-dev
 // Request
 {
   "tripId": "abc123",
-  "trigger": "weather",        // "weather" | "road" | "delay" | "other"
-  "details": "Heavy rain expected at Bhairavi Temple from 3pm"
+  "prompt": "It's raining heavily near the temple, we need indoor activities."
 }
 
-// Response
+// Success Response
 {
   "tripId": "abc123",
   "updatedDays": [ /* same shape as itinerary days, remaining items only */ ],
   "reason": "Outdoor activity replaced due to rain."
+}
+
+// Error Response (Invalid or irrelevant prompt)
+{
+  "error": {
+    "code": "INVALID_REPLAN_PROMPT",
+    "message": "We couldn't understand that as a valid trip change request."
+  }
 }
 ```
 

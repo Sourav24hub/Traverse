@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { generateItinerary, getItinerary } from '../api/itineraryApi';
 import { updateLocation } from '../api/locationApi';
 import { getMembers, removeMember } from '../api/mockApi';
+import { replanItinerary } from '../api/replanApi';
 import './ItineraryView.css';
 
 /* ── Type badge metadata ── */
@@ -101,6 +102,13 @@ export default function ItineraryView({ tripId, destination, roomCode, userId: p
   const [members, setMembers] = useState([]);
   const [membersLoading, setMembersLoading] = useState(false);
   const [membersError, setMembersError] = useState(null);
+
+  /* ── Replanning state ── */
+  const [showReplan, setShowReplan] = useState(false);
+  const [replanPrompt, setReplanPrompt] = useState('');
+  const [replanLoading, setReplanLoading] = useState(false);
+  const [replanReason, setReplanReason] = useState(null);
+  const [invalidPromptError, setInvalidPromptError] = useState(null);
 
   const intervalRef      = useRef(null);
   const flashTimeoutRef  = useRef(null);
@@ -283,6 +291,42 @@ export default function ItineraryView({ tripId, destination, roomCode, userId: p
       if (intervalRef.current) clearInterval(intervalRef.current);
     };
   }, []);
+
+  /* ─────────────────────────────────
+     Handle Replan
+     ───────────────────────────────── */
+  const handleReplanSubmit = async (e) => {
+    e.preventDefault();
+    if (!replanPrompt.trim()) return;
+    
+    setReplanLoading(true);
+    setReplanReason(null);
+    setInvalidPromptError(null);
+    
+    const res = await replanItinerary({
+      tripId,
+      prompt: replanPrompt.trim(),
+    });
+    
+    setReplanLoading(false);
+    
+    if (!res.ok) {
+      if (res.data?.error?.code === 'INVALID_REPLAN_PROMPT') {
+        setInvalidPromptError(res.data.error.message);
+      } else {
+        alert(`Failed to replan: ${res.data?.error?.message}`);
+      }
+      return;
+    }
+
+    setItinerary(prev => ({
+      ...prev,
+      days: res.data.updatedDays
+    }));
+    setReplanReason(res.data.reason);
+    setShowReplan(false);
+    setReplanPrompt('');
+  };
 
   /* ══════════════
      Loading state
@@ -541,6 +585,30 @@ export default function ItineraryView({ tripId, destination, roomCode, userId: p
           ))}
         </div>
 
+        {/* Replan Reason Banner */}
+        {replanReason && (
+          <div className="iv-replan-banner" style={{
+            background: '#e0f2fe',
+            color: '#0369a1',
+            padding: '12px 16px',
+            borderRadius: '8px',
+            marginBottom: '16px',
+            fontSize: '14px',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px'
+          }}>
+            <span>🔄</span>
+            <strong>Itinerary Updated:</strong> {replanReason}
+            <button 
+              onClick={() => setReplanReason(null)}
+              style={{ marginLeft: 'auto', background: 'none', border: 'none', color: '#0369a1', cursor: 'pointer' }}
+            >
+              ✕
+            </button>
+          </div>
+        )}
+
         {/* Item list */}
         <div className="iv-items" id={`itinerary-day-${currentDay.day}`}>
           {currentDay.items.map((item, i) => (
@@ -557,10 +625,63 @@ export default function ItineraryView({ tripId, destination, roomCode, userId: p
           ))}
         </div>
 
-        {/* Back button */}
-        <button className="iv-btn-secondary" onClick={onBack}>
-          ← Back to home
-        </button>
+        {/* Action Buttons */}
+        <div style={{ display: 'flex', gap: '12px', marginTop: '24px' }}>
+          <button className="iv-btn-secondary" onClick={onBack} style={{ flex: 1 }}>
+            ← Back to home
+          </button>
+          <button 
+            className="iv-btn-primary" 
+            onClick={() => setShowReplan(true)}
+            style={{ flex: 1, background: '#f59e0b', color: 'white', border: 'none' }}
+          >
+            Something changed?
+          </button>
+        </div>
+
+        {/* Replan Modal */}
+        {showReplan && (
+          <div className="iv-modal-overlay" style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100 }}>
+            <div className="iv-modal" style={{ background: '#fff', padding: '24px', borderRadius: '12px', width: '90%', maxWidth: '400px', color: '#111' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+                <h2 style={{ margin: 0, fontSize: '20px' }}>Update Itinerary</h2>
+                <button onClick={() => { setShowReplan(false); setInvalidPromptError(null); }} style={{ background: 'none', border: 'none', fontSize: '20px', cursor: 'pointer' }}>×</button>
+              </div>
+              
+              {invalidPromptError && (
+                <div style={{ background: '#fee2e2', color: '#991b1b', padding: '12px', borderRadius: '8px', marginBottom: '16px', fontSize: '13px' }}>
+                  <strong>Not Understood:</strong> {invalidPromptError}
+                </div>
+              )}
+
+              <p style={{ fontSize: '14px', color: '#666', marginBottom: '16px' }}>
+                Describe what changed, and Gemini will adjust the rest of your trip.
+              </p>
+              <form onSubmit={handleReplanSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                <div>
+                  <textarea 
+                    value={replanPrompt}
+                    onChange={e => {
+                      setReplanPrompt(e.target.value);
+                      if (invalidPromptError) setInvalidPromptError(null);
+                    }}
+                    placeholder="E.g. It's raining heavily near the temple, we need indoor activities."
+                    style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #ddd', minHeight: '100px', resize: 'vertical' }}
+                    required
+                  />
+                </div>
+                <button 
+                  type="submit" 
+                  disabled={replanLoading || !replanPrompt.trim()}
+                  className="iv-btn-primary"
+                  style={{ background: '#f59e0b', color: 'white', border: 'none', opacity: replanLoading ? 0.7 : 1 }}
+                >
+                  {replanLoading ? 'Updating Plan...' : 'Replan Trip'}
+                </button>
+              </form>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

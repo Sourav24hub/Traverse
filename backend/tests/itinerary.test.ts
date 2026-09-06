@@ -279,3 +279,131 @@ describe("GET /api/itinerary/:tripId", () => {
     expect(res.body.error.code).toBe("ITINERARY_NOT_FOUND");
   });
 });
+
+/* ════════════════════════════════════════════
+   POST /api/itinerary/replan
+   ════════════════════════════════════════════ */
+describe("POST /api/itinerary/replan", () => {
+  const VALID_REPLAN_GEMINI_RESPONSE = JSON.stringify({
+    valid: true,
+    updatedDays: [
+      {
+        day: 2,
+        items: [
+          { name: "Alternative Temple", lat: 33.0, lng: 74.0, type: "checkpoint", completed: false }
+        ]
+      }
+    ],
+    reason: "Replaced due to weather."
+  });
+
+  const INVALID_PROMPT_GEMINI_RESPONSE = JSON.stringify({
+    valid: false,
+    reason: "Prompt is not related to trip changes."
+  });
+
+  it("successfully replans for a valid free-text prompt", async () => {
+    const tripId = await createTrip();
+    
+    // 1. Generate initial itinerary
+    await request(app)
+      .post("/api/itinerary/generate")
+      .send({ tripId })
+      .expect(200);
+
+    // 2. Setup mock for replan
+    setGeminiClientFactory(makeMockClient(VALID_REPLAN_GEMINI_RESPONSE));
+
+    // 3. Replan
+    const res = await request(app)
+      .post("/api/itinerary/replan")
+      .send({ tripId, prompt: "It's raining, we need indoor things." })
+      .expect(200);
+
+    expect(res.body).toHaveProperty("tripId", tripId);
+    expect(Array.isArray(res.body.updatedDays)).toBe(true);
+    expect(res.body).toHaveProperty("reason", "Replaced due to weather.");
+  });
+
+  it("returns 400 INVALID_REPLAN_PROMPT when Gemini marks the prompt as invalid", async () => {
+    const tripId = await createTrip();
+    
+    // Generate initial itinerary
+    await request(app)
+      .post("/api/itinerary/generate")
+      .send({ tripId })
+      .expect(200);
+
+    // Setup mock to fail validation
+    setGeminiClientFactory(makeMockClient(INVALID_PROMPT_GEMINI_RESPONSE));
+
+    const res = await request(app)
+      .post("/api/itinerary/replan")
+      .send({ tripId, prompt: "what is the meaning of life?" })
+      .expect(400);
+
+    expect(res.body.error.code).toBe("INVALID_REPLAN_PROMPT");
+    expect(res.body.error.message).toBe("Prompt is not related to trip changes.");
+  });
+
+  it("returns 404 TRIP_NOT_FOUND for an unknown tripId", async () => {
+    const res = await request(app)
+      .post("/api/itinerary/replan")
+      .send({ tripId: "nonexistent_id", prompt: "rain" })
+      .expect(404);
+
+    expect(res.body.error.code).toBe("TRIP_NOT_FOUND");
+  });
+
+  it("confirms already-completed items are never altered", async () => {
+    const tripId = await createTrip();
+    
+    // Generate initial itinerary
+    await request(app)
+      .post("/api/itinerary/generate")
+      .send({ tripId })
+      .expect(200);
+
+    // Mark an item as completed manually in the store
+    const trip = store.findById(tripId);
+    if (!trip || !trip.itinerary) throw new Error("Setup failed");
+    
+    // Mark the first item on day 1 as completed
+    const itemToComplete = trip.itinerary.days[0].items[0];
+    itemToComplete.completed = true;
+    const originalItemId = itemToComplete.itemId;
+    const originalItemName = itemToComplete.name;
+    store.save(trip);
+
+    // Setup mock for replan (returns a different plan for day 1 and 2, valid flag for validation)
+    const REPLAN_MOCK = JSON.stringify({
+      valid: true,
+      updatedDays: [
+        {
+          day: 1,
+          items: [{ name: "New Day 1 Item", lat: 1, lng: 1, type: "checkpoint", completed: false }]
+        }
+      ],
+      reason: "Replaced."
+    });
+    setGeminiClientFactory(makeMockClient(REPLAN_MOCK));
+
+    const res = await request(app)
+      .post("/api/itinerary/replan")
+      .send({ tripId, prompt: "late start" })
+      .expect(200);
+
+    // Fetch the updated trip to verify
+    const updatedTrip = store.findById(tripId);
+    
+    // Day 1 should have the completed item + the new uncompleted item
+    const day1 = updatedTrip?.itinerary?.days.find(d => d.day === 1);
+    expect(day1).toBeDefined();
+    
+    const completedItem = day1?.items.find(i => i.completed);
+    expect(completedItem).toBeDefined();
+    expect(completedItem?.itemId).toBe(originalItemId);
+    expect(completedItem?.name).toBe(originalItemName);
+  });
+});
+

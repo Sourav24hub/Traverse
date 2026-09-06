@@ -141,3 +141,37 @@
   text-decoration: underline;
   color: var(--c-orange-dk);
 }
+
+.auth-password-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.auth-password-wrapper input {
+  width: 100%;
+  padding-right: 40px;
+}
+
+.auth-password-toggle {
+  position: absolute;
+  right: 10px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--c-stone);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px;
+  transition: color 0.2s ease;
+}
+
+.auth-password-toggle:hover {
+  color: var(--c-ink);
+}
+
+.auth-password-toggle svg {
+  width: 18px;
+  height: 18px;
+}
