@@ -10,6 +10,7 @@ import { Router, Request, Response } from "express";
 import { store } from "../models/store.js";
 import { generateId, generateRoomCode } from "../services/idgen.js";
 import { sendError } from "../services/errors.js";
+import { fireDynamicNotification } from "../services/groq.js";
 
 const router = Router();
 
@@ -85,6 +86,9 @@ router.post("/", (req: Request, res: Response) => {
   };
   if (roomCode) responseBody.roomCode = roomCode;
 
+  // Notify creator
+  fireDynamicNotification(adminUserId, tripId, "trip_created", { destination });
+
   return res.status(201).json(responseBody);
 });
 
@@ -124,6 +128,16 @@ router.post("/join", (req: Request, res: Response) => {
   };
   store.save(trip); // persist the updated member list
 
+  // Notify the joiner
+  fireDynamicNotification(userId, trip.tripId, "you_joined", { destination: trip.destination });
+
+  // Notify existing members
+  Object.values(trip.members).forEach(member => {
+    if (member.userId !== userId) {
+      fireDynamicNotification(member.userId, trip.tripId, "user_joined", { username: joinUserName });
+    }
+  });
+
   // Response shape from spec §9.1
   return res.status(200).json({ tripId: trip.tripId, userId });
 });
@@ -153,10 +167,13 @@ router.get("/:tripId/members", (req: Request, res: Response) => {
    ───────────────────────────────────────────── */
 router.delete("/:tripId/members/:userId", (req: Request, res: Response) => {
   const { tripId, userId } = req.params;
-  const { adminUserId } = req.body ?? {};
+
+  // Prefer the authenticated user's ID from the verified Bearer token.
+  // Fall back to body only for backward-compat with unauthenticated test calls.
+  const adminUserId = req.user?.id ?? req.body?.adminUserId;
 
   if (!adminUserId) {
-    return sendError(res, 400, "MISSING_FIELDS", "The following fields are required: adminUserId.");
+    return sendError(res, 401, "UNAUTHORIZED", "Authentication required to remove a member.");
   }
 
   const trip = store.findById(tripId);
@@ -180,8 +197,8 @@ router.delete("/:tripId/members/:userId", (req: Request, res: Response) => {
     return sendError(res, 404, "MEMBER_NOT_FOUND", "No member with that ID in this trip.");
   }
 
-  // Add the removed user's name to the blocklist so they cannot rejoin
-  const removedName = trip.members[userId].userName.toLowerCase();
+  const removedUser = trip.members[userId];
+  const removedName = removedUser.userName.toLowerCase();
   if (!trip.blockedUserNames) trip.blockedUserNames = [];
   if (!trip.blockedUserNames.includes(removedName)) {
     trip.blockedUserNames.push(removedName);
@@ -190,7 +207,49 @@ router.delete("/:tripId/members/:userId", (req: Request, res: Response) => {
   delete trip.members[userId];
   store.save(trip);
 
+  // Notify the removed user
+  fireDynamicNotification(userId, tripId, "you_removed", { destination: trip.destination });
+
   return res.json({ tripId, removedUserId: userId });
+});
+
+/* ─────────────────────────────────────────────
+   POST /api/trips/:tripId/leave — Leave a trip
+   ───────────────────────────────────────────── */
+router.post("/:tripId/leave", (req: Request, res: Response) => {
+  const { tripId } = req.params;
+  const userId = req.user?.id ?? req.body.userId;
+
+  if (!userId) {
+    return sendError(res, 400, "MISSING_FIELDS", "userId is required.");
+  }
+
+  const trip = store.findById(tripId);
+  if (!trip) {
+    return sendError(res, 404, "TRIP_NOT_FOUND", "Trip not found.");
+  }
+
+  const leavingUser = trip.members[userId];
+  if (!leavingUser) {
+    return sendError(res, 404, "MEMBER_NOT_FOUND", "No member with that ID in this trip.");
+  }
+
+  if (leavingUser.isAdmin) {
+    return sendError(res, 400, "ADMIN_CANNOT_LEAVE", "The admin cannot leave the trip. Delete the trip instead.");
+  }
+
+  delete trip.members[userId];
+  store.save(trip);
+
+  // Notify the leaving user
+  fireDynamicNotification(userId, tripId, "you_left", { destination: trip.destination });
+
+  // Notify remaining members
+  Object.values(trip.members).forEach(member => {
+    fireDynamicNotification(member.userId, tripId, "user_left", { username: leavingUser.userName });
+  });
+
+  return res.json({ tripId, leftUserId: userId });
 });
 
 /* ─────────────────────────────────────────────
@@ -213,6 +272,11 @@ router.delete("/:tripId", (req: Request, res: Response) => {
   if (!requesterMember || !requesterMember.isAdmin) {
     return sendError(res, 403, "NOT_AUTHORIZED", "Only the trip admin can delete the trip.");
   }
+
+  // Notify all members before deleting
+  Object.values(trip.members).forEach(member => {
+    fireDynamicNotification(member.userId, undefined, "trip_deleted", { destination: trip.destination });
+  });
 
   // Delete from store completely
   store.deleteTrip(tripId);

@@ -31,6 +31,15 @@ export default function Login({ onSignupClick }) {
 
   return (
     <div className="auth-container">
+      <svg className="auth-topo-bg" viewBox="0 0 900 600" preserveAspectRatio="xMidYMid slice" aria-hidden="true" fill="none">
+        <path d="M-20 180 C100 155, 250 200, 400 175 S600 128, 750 160 S900 195, 960 180" stroke="rgba(255,255,255,0.025)" strokeWidth="1"/>
+        <path d="M-20 300 C80 275, 200 310, 350 290 S550 250, 700 280 S880 310, 950 295" stroke="rgba(255,255,255,0.03)" strokeWidth="1.2"/>
+        <path d="M-20 420 C120 400, 280 440, 420 420 S620 380, 760 410 S910 440, 960 425" stroke="rgba(255,255,255,0.02)" strokeWidth="0.8"/>
+        <path d="M100 500 C200 470, 350 430, 500 450 S700 480, 800 460" stroke="rgba(232,96,44,0.12)" strokeWidth="2" strokeDasharray="6 4"/>
+        <circle cx="100" cy="500" r="4" fill="rgba(232,96,44,0.25)"/>
+        <circle cx="800" cy="460" r="4" fill="rgba(232,96,44,0.25)"/>
+        <circle cx="800" cy="460" r="8" fill="none" stroke="rgba(232,96,44,0.12)" strokeWidth="1.5"/>
+      </svg>
       <div className="auth-card">
         <h1 className="auth-title">Welcome Back</h1>
         <p className="auth-subtitle">Log in to continue your journey.</p>

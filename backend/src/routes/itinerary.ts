@@ -8,6 +8,7 @@ import { Router, Request, Response } from "express";
 import { store } from "../models/store.js";
 import { sendError } from "../services/errors.js";
 import { generateItinerary, replanItinerary, validateReplanPrompt } from "../services/gemini.js";
+import { fireDynamicNotification } from "../services/groq.js";
 
 const router = Router();
 
@@ -149,6 +150,11 @@ router.post("/replan", async (req: Request, res: Response) => {
 
     trip.itinerary.days = newDays;
     store.save(trip);
+
+    // Notify all members
+    Object.values(trip.members).forEach(member => {
+      fireDynamicNotification(member.userId, tripId, "itinerary_replanned", { destination: trip.destination });
+    });
 
     return res.status(200).json({
       tripId: trip.tripId,

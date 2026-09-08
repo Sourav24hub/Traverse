@@ -3,38 +3,68 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background-color: var(--c-mist);
+  background-color: var(--c-ink);
   padding: 16px;
+  padding-top: 80px; /* space for sticky nav */
+  position: relative;
+  overflow: hidden;
+}
+
+/* Subtle topo/route motif background — doesn't distract from the form */
+.auth-container::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 60% 50% at 80% 30%, rgba(232,96,44,0.04) 0%, transparent 70%),
+    radial-gradient(ellipse 50% 40% at 10% 70%, rgba(255,255,255,0.015) 0%, transparent 60%);
+  pointer-events: none;
+}
+
+.auth-topo-bg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 0;
 }
 
 .auth-card {
-  background: var(--c-summit);
-  padding: 32px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  padding: 36px;
   border-radius: var(--r-md);
   width: 100%;
-  max-width: 400px;
-  box-shadow: var(--s-md);
+  max-width: 420px;
+  box-shadow: 0 16px 48px rgba(0,0,0,0.3);
+  position: relative;
+  z-index: 1;
 }
 
 .auth-title {
   font-family: var(--font-serif);
-  font-size: 2.2rem;
+  font-size: 2.4rem;
   font-weight: 400;
-  color: var(--c-ink);
+  color: #fff;
   margin: 0 0 8px 0;
-  letter-spacing: -0.01em;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
 }
 
 .auth-subtitle {
-  color: var(--c-stone);
+  color: rgba(255, 255, 255, 0.45);
   font-size: 14px;
-  margin: 0 0 24px 0;
+  margin: 0 0 28px 0;
+  font-family: var(--font-ui);
 }
 
 .auth-error {
-  background: var(--c-error-bg);
-  color: var(--c-error-tx);
-  border: 1px solid var(--c-error-bd);
+  background: rgba(220, 38, 38, 0.12);
+  color: #fca5a5;
+  border: 1px solid rgba(220, 38, 38, 0.25);
   padding: 12px;
   border-radius: var(--r-sm);
   font-size: 14px;
@@ -44,7 +74,7 @@
 .auth-form {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 18px;
 }
 
 .auth-field {
@@ -56,24 +86,30 @@
 .auth-field label {
   font-size: 13px;
   font-weight: 600;
-  color: var(--c-stone);
+  color: rgba(255, 255, 255, 0.55);
+  letter-spacing: 0.01em;
 }
 
 .auth-field input {
-  padding: 12px 14px;
-  border: 1px solid var(--c-contour);
+  padding: 13px 14px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
   border-radius: var(--r-sm);
-  background: var(--c-summit);
-  color: var(--c-ink);
+  background: rgba(255, 255, 255, 0.06);
+  color: #fff;
   font-size: 15px;
   font-family: var(--font-ui);
-  transition: border-color var(--dur) var(--ease), box-shadow var(--dur) var(--ease);
+  transition: border-color var(--dur) var(--ease), box-shadow var(--dur) var(--ease), background var(--dur) var(--ease);
+}
+
+.auth-field input::placeholder {
+  color: rgba(255, 255, 255, 0.25);
 }
 
 .auth-field input:focus {
   outline: none;
   border-color: var(--c-orange);
   box-shadow: var(--s-glow);
+  background: rgba(255, 255, 255, 0.08);
 }
 
 .auth-btn {
@@ -87,7 +123,8 @@
   font-family: var(--font-ui);
   cursor: pointer;
   margin-top: 8px;
-  transition: background var(--dur) var(--ease), transform var(--dur) var(--ease);
+  box-shadow: 0 4px 20px rgba(232, 96, 44, 0.3);
+  transition: background var(--dur) var(--ease), transform var(--dur) var(--ease), box-shadow var(--dur-md) var(--ease);
 }
 
 .auth-btn:disabled {
@@ -98,6 +135,7 @@
 .auth-btn:hover:not(:disabled) {
   background: var(--c-orange-dk);
   transform: translateY(-1px);
+  box-shadow: 0 8px 28px rgba(232, 96, 44, 0.4);
 }
 
 .auth-btn:active:not(:disabled) {
@@ -107,7 +145,7 @@
 .auth-link-btn {
   background: transparent;
   border: none;
-  color: var(--c-stone);
+  color: rgba(255, 255, 255, 0.45);
   cursor: pointer;
   padding: 8px;
   font-size: 14px;
@@ -116,14 +154,14 @@
 }
 
 .auth-link-btn:hover {
-  color: var(--c-ink);
+  color: rgba(255, 255, 255, 0.8);
 }
 
 .auth-footer {
   margin-top: 24px;
   text-align: center;
   font-size: 14px;
-  color: var(--c-stone);
+  color: rgba(255, 255, 255, 0.4);
 }
 
 .auth-link {
@@ -159,7 +197,7 @@
   background: none;
   border: none;
   cursor: pointer;
-  color: var(--c-stone);
+  color: rgba(255, 255, 255, 0.4);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -168,7 +206,7 @@
 }
 
 .auth-password-toggle:hover {
-  color: var(--c-ink);
+  color: rgba(255, 255, 255, 0.7);
 }
 
 .auth-password-toggle svg {

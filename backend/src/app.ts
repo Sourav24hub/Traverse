@@ -5,8 +5,8 @@ import tripsRouter from "./routes/trips.js";
 import itineraryRouter from "./routes/itinerary.js";
 import locationRouter from "./routes/location.js";
 import { optionalAuth } from "./middleware/auth.js";
-
 import usersRouter from "./routes/users.js";
+import { notificationRouter } from "./routes/notifications.js";
 
 const app = express();
 
@@ -22,6 +22,7 @@ app.use("/api/users", usersRouter);
 app.use("/api/trips", tripsRouter);
 app.use("/api/itinerary", itineraryRouter);
 app.use("/api/location", locationRouter);
+app.use("/api/notifications", notificationRouter);
 
 // Health check
 app.get("/health", (_req, res) => {

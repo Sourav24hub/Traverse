@@ -1,6 +1,6 @@
 /**
  * Itinerary API — real fetch() calls to /api/itinerary
- * Mirrors the pattern in mockApi.js, same { ok, data } wrapper.
+ * Mirrors the pattern in tripApi.js, same { ok, data } wrapper.
  *
  * Backend contract (confirmed from backend/src/routes/itinerary.ts):
  *   POST /api/itinerary/generate   body: { tripId }

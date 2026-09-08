@@ -7,8 +7,11 @@ import TripDetails from './components/TripDetails'
 import Login from './components/Login'
 import Signup from './components/Signup'
 import MyTrips from './components/MyTrips'
+import WelcomePage from './components/WelcomePage'
+import NotificationBell from './components/NotificationBell'
 import { AuthProvider, useAuth } from './context/AuthContext'
 import './App.css'
+import './components/WelcomePage.css'
 
 /* ── Topographic contour SVG ── */
 function TopoTexture() {
@@ -37,7 +40,7 @@ function TopoTexture() {
 }
 
 /*
-  Screen state machine:
+  Screen state machine (inside the app, once past the welcome page):
     'login'     → Login page
     'signup'    → Signup page
     'welcome'   → Page 1 — Welcome / landing (auth required)
@@ -47,7 +50,7 @@ function TopoTexture() {
     'join'      → Join Trip flow (Group shortcut from welcome)
     'itinerary' → Itinerary display
 */
-function AppContent() {
+function AppContent({ onGoHome, onLoginClick, onScrollTo }) {
   const { isLoggedIn, logout, user } = useAuth()
   const [screen, setScreen]           = useState('welcome')
   const [tripMode, setTripMode]       = useState(null)  // 'solo' | 'group'
@@ -80,8 +83,24 @@ function AppContent() {
     setScreen('itinerary')
   }
 
+  /* Whether we're on a public (unauthenticated) screen */
+  const isAuthScreen = screen === 'login' || screen === 'signup';
+
   return (
     <div className="app-shell">
+
+      {/* ── Marketing nav bar — only on login/signup screens ── */}
+      {isAuthScreen && (
+        <nav className="wl-nav">
+          <span className="wl-nav-brand">traverse</span>
+          <div className="wl-nav-links">
+            <button className="wl-nav-link" onClick={onGoHome}>Home</button>
+            <button className="wl-nav-link" onClick={() => onScrollTo('wl-features')}>Know More</button>
+            <button className="wl-nav-link" onClick={() => onScrollTo('wl-contact')}>Contact Us</button>
+            <button className="wl-nav-link wl-nav-link--login" onClick={onLoginClick}>Login</button>
+          </div>
+        </nav>
+      )}
 
       {/* ══ Auth Screens ══ */}
       {screen === 'login' && <Login onSignupClick={() => setScreen('signup')} />}
@@ -93,6 +112,7 @@ function AppContent() {
           <nav className="landing-nav">
             <span className="landing-wordmark">traverse</span>
             <div style={{ display: 'flex', alignItems: 'center', gap: '16px', zIndex: 10 }}>
+              <NotificationBell />
               <span style={{ color: 'rgba(255,255,255,0.7)', fontSize: '14px' }}>Hello, {user?.username}</span>
               <button className="jt-btn-secondary" onClick={logout} style={{ padding: '6px 12px', fontSize: '12px' }}>Log out</button>
             </div>
@@ -181,10 +201,66 @@ function AppContent() {
   )
 }
 
+/* ══════════════════════════════════════════════════════
+   Root App — Hash-based routing
+   /#/login  → auth flow (AppContent)
+   /#/signup → auth flow (AppContent)
+   /         → WelcomePage (marketing landing)
+   ══════════════════════════════════════════════════════ */
 export default function App() {
+  const [route, setRoute] = useState(() => getRoute());
+
+  useEffect(() => {
+    function onHashChange() {
+      setRoute(getRoute());
+    }
+    window.addEventListener('hashchange', onHashChange);
+    return () => window.removeEventListener('hashchange', onHashChange);
+  }, []);
+
+  function handleLoginClick() {
+    window.location.hash = '#/login';
+  }
+
+  /* ── Navigate back to welcome (clear hash) ── */
+  function handleGoHome() {
+    window.location.hash = '';
+    window.scrollTo(0, 0);
+  }
+
+  /* ── Scroll to a section on the Welcome page ── */
+  function handleScrollTo(sectionId) {
+    // Navigate to welcome first, then scroll
+    if (route !== 'welcome') {
+      window.location.hash = '';
+      // Wait for the welcome page to render, then scroll
+      setTimeout(() => {
+        const el = document.getElementById(sectionId);
+        if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 100);
+    }
+  }
+
   return (
     <AuthProvider>
-      <AppContent />
+      {route === 'welcome' ? (
+        <WelcomePage onLoginClick={handleLoginClick} />
+      ) : (
+        <AppContent
+          onGoHome={handleGoHome}
+          onLoginClick={handleLoginClick}
+          onScrollTo={handleScrollTo}
+        />
+      )}
     </AuthProvider>
   )
+}
+
+/* ── Parse hash into a route key ── */
+function getRoute() {
+  const hash = window.location.hash;
+  if (hash === '#/login' || hash === '#/signup') {
+    return 'app'; // render the app state machine (which handles login/signup internally)
+  }
+  return 'welcome';
 }

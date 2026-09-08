@@ -398,15 +398,15 @@ describe("DELETE /api/trips/:tripId/members/:userId", () => {
     expect(res.body.error.code).toBe("TRIP_NOT_FOUND");
   });
 
-  it("returns 400 MISSING_FIELDS when adminUserId is absent", async () => {
+  it("returns 401 UNAUTHORIZED when no auth token is provided", async () => {
     const { tripId, memberId } = await setupTripWithMember();
 
     const res = await request(app)
       .delete(`/api/trips/${tripId}/members/${memberId}`)
       .send({})
-      .expect(400);
+      .expect(401);
 
-    expect(res.body.error.code).toBe("MISSING_FIELDS");
+    expect(res.body.error.code).toBe("UNAUTHORIZED");
   });
 });
 

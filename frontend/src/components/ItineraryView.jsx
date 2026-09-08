@@ -1,8 +1,9 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { generateItinerary, getItinerary } from '../api/itineraryApi';
 import { updateLocation } from '../api/locationApi';
-import { getMembers, removeMember } from '../api/mockApi';
+import { getMembers, removeMember } from '../api/tripApi';
 import { replanItinerary } from '../api/replanApi';
+import NotificationBell from './NotificationBell';
 import './ItineraryView.css';
 
 /* ── Type badge metadata ── */
@@ -404,7 +405,6 @@ export default function ItineraryView({ tripId, destination, roomCode, userId: p
               <p>{error.message}</p>
             </div>
           </div>
-          <button className="iv-btn-primary" onClick={onBack}>← Back to home</button>
         </div>
       </div>
     );
@@ -421,12 +421,14 @@ export default function ItineraryView({ tripId, destination, roomCode, userId: p
   );
 
   return (
+    <>
     <div className="iv-page" id="itinerary-view">
       {/* Dark header */}
       <header className="iv-header">
         <div className="iv-header-top">
           <button type="button" className="iv-back iv-back--light" onClick={onBack}>← Back</button>
-          <div style={{ display: 'flex', gap: '8px' }}>
+          <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+            <NotificationBell tripId={tripId} />
             {roomCode && (
               <div className="iv-room-chip" id="itinerary-room-chip">
                 <span className="iv-room-chip-label">Room</span>
@@ -624,65 +626,135 @@ export default function ItineraryView({ tripId, destination, roomCode, userId: p
             </div>
           ))}
         </div>
-
-        {/* Action Buttons */}
-        <div style={{ display: 'flex', gap: '12px', marginTop: '24px' }}>
-          <button className="iv-btn-secondary" onClick={onBack} style={{ flex: 1 }}>
-            ← Back to home
-          </button>
-          <button 
-            className="iv-btn-primary" 
-            onClick={() => setShowReplan(true)}
-            style={{ flex: 1, background: '#f59e0b', color: 'white', border: 'none' }}
-          >
-            Something changed?
-          </button>
-        </div>
-
-        {/* Replan Modal */}
-        {showReplan && (
-          <div className="iv-modal-overlay" style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100 }}>
-            <div className="iv-modal" style={{ background: '#fff', padding: '24px', borderRadius: '12px', width: '90%', maxWidth: '400px', color: '#111' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-                <h2 style={{ margin: 0, fontSize: '20px' }}>Update Itinerary</h2>
-                <button onClick={() => { setShowReplan(false); setInvalidPromptError(null); }} style={{ background: 'none', border: 'none', fontSize: '20px', cursor: 'pointer' }}>×</button>
-              </div>
-              
-              {invalidPromptError && (
-                <div style={{ background: '#fee2e2', color: '#991b1b', padding: '12px', borderRadius: '8px', marginBottom: '16px', fontSize: '13px' }}>
-                  <strong>Not Understood:</strong> {invalidPromptError}
-                </div>
-              )}
-
-              <p style={{ fontSize: '14px', color: '#666', marginBottom: '16px' }}>
-                Describe what changed, and Gemini will adjust the rest of your trip.
-              </p>
-              <form onSubmit={handleReplanSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                <div>
-                  <textarea 
-                    value={replanPrompt}
-                    onChange={e => {
-                      setReplanPrompt(e.target.value);
-                      if (invalidPromptError) setInvalidPromptError(null);
-                    }}
-                    placeholder="E.g. It's raining heavily near the temple, we need indoor activities."
-                    style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #ddd', minHeight: '100px', resize: 'vertical' }}
-                    required
-                  />
-                </div>
-                <button 
-                  type="submit" 
-                  disabled={replanLoading || !replanPrompt.trim()}
-                  className="iv-btn-primary"
-                  style={{ background: '#f59e0b', color: 'white', border: 'none', opacity: replanLoading ? 0.7 : 1 }}
-                >
-                  {replanLoading ? 'Updating Plan...' : 'Replan Trip'}
-                </button>
-              </form>
-            </div>
-          </div>
-        )}
       </div>
     </div>
+      
+      {/* Replan Floating Button */}
+      <button 
+        onClick={() => setShowReplan(true)}
+        style={{
+          position: 'fixed',
+          right: '20px',
+          bottom: '30px',
+          background: 'var(--c-orange)',
+          color: '#fff',
+          border: 'none',
+          borderRadius: '50px',
+          padding: '14px 24px',
+          fontFamily: 'var(--font-ui)',
+          fontWeight: 600,
+          fontSize: '15px',
+          boxShadow: 'var(--s-md)',
+          cursor: 'pointer',
+          zIndex: 90,
+          display: 'flex',
+          alignItems: 'center',
+          gap: '8px',
+          transition: 'transform 0.2s'
+        }}
+        onMouseOver={e => e.currentTarget.style.transform = 'scale(1.05)'}
+        onMouseOut={e => e.currentTarget.style.transform = 'scale(1)'}
+      >
+        <span>✨</span> Replan Trip
+      </button>
+
+      {/* Replan Popup Widget */}
+      {showReplan && (
+        <div style={{ position: 'fixed', inset: 0, zIndex: 100 }}>
+          <div 
+            style={{ position: 'absolute', inset: 0, background: 'transparent' }}
+            onClick={() => { setShowReplan(false); setInvalidPromptError(null); }}
+          />
+          <div 
+            style={{ 
+              position: 'absolute',
+              bottom: '90px',
+              right: '20px',
+              background: 'var(--c-summit)', 
+              width: 'calc(100% - 40px)', 
+              maxWidth: '380px', 
+              height: 'auto',
+              maxHeight: 'calc(100vh - 120px)',
+              borderRadius: 'var(--r-md)',
+              padding: '24px', 
+              boxShadow: 'var(--s-glow), 0 10px 40px rgba(0,0,0,0.1)',
+              display: 'flex',
+              flexDirection: 'column',
+              animation: 'popupFade 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards'
+            }}
+          >
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
+              <h2 style={{ margin: 0, fontFamily: 'var(--font-serif)', fontSize: '24px', color: 'var(--c-ink)' }}>Update Itinerary</h2>
+              <button 
+                onClick={() => { setShowReplan(false); setInvalidPromptError(null); }} 
+                style={{ background: 'none', border: 'none', fontSize: '28px', color: 'var(--c-stone)', cursor: 'pointer', lineHeight: 1 }}
+              >
+                ×
+              </button>
+            </div>
+            
+            {invalidPromptError && (
+              <div style={{ background: '#fee2e2', color: '#991b1b', padding: '12px 16px', borderRadius: 'var(--r-md)', marginBottom: '20px', fontSize: '14px', lineHeight: 1.4 }}>
+                <strong>Not Understood:</strong> {invalidPromptError}
+              </div>
+            )}
+
+            <p style={{ fontSize: '15px', color: 'var(--c-stone)', marginBottom: '24px', lineHeight: 1.5 }}>
+              Describe what changed (e.g., "it's raining" or "we're running late"), and Gemini will dynamically adjust the rest of your trip.
+            </p>
+
+            <form onSubmit={handleReplanSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '20px', flex: 1 }}>
+              <textarea 
+                value={replanPrompt}
+                onChange={e => {
+                  setReplanPrompt(e.target.value);
+                  if (invalidPromptError) setInvalidPromptError(null);
+                }}
+                placeholder="E.g. It's raining heavily near the temple, we need indoor activities."
+                style={{ 
+                  width: '100%', 
+                  padding: '16px', 
+                  borderRadius: 'var(--r-md)', 
+                  border: '1px solid var(--c-contour)', 
+                  minHeight: '140px', 
+                  fontFamily: 'inherit',
+                  fontSize: '15px',
+                  resize: 'none',
+                  color: 'var(--c-ink)',
+                  background: 'var(--c-mist)'
+                }}
+                required
+              />
+              
+              <button 
+                type="submit" 
+                disabled={replanLoading || !replanPrompt.trim()}
+                className="iv-btn-primary"
+                style={{ 
+                  background: 'var(--c-orange)', 
+                  color: 'white', 
+                  border: 'none', 
+                  padding: '16px',
+                  fontSize: '16px',
+                  fontWeight: 600,
+                  borderRadius: 'var(--r-md)',
+                  opacity: replanLoading ? 0.7 : 1,
+                  cursor: replanLoading ? 'default' : 'pointer',
+                  marginTop: 'auto'
+                }}
+              >
+                {replanLoading ? 'Updating Plan...' : 'Replan Trip'}
+              </button>
+            </form>
+          </div>
+          <style>{`
+            @keyframes popupFade {
+              from { opacity: 0; transform: translateY(10px) scale(0.98); }
+              to { opacity: 1; transform: translateY(0) scale(1); }
+            }
+          `}</style>
+        </div>
+      )}
+    </>
   );
 }
