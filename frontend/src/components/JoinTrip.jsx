@@ -1,8 +1,10 @@
 import { useState } from 'react';
-import { joinTrip } from '../api/mockApi';
+import { joinTrip } from '../api/tripApi';
+import { useAuth } from '../context/AuthContext';
 import './JoinTrip.css';
 
 export default function JoinTrip({ onBack, onSuccess }) {
+  const { user } = useAuth();
   const [roomCode, setRoomCode] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -45,7 +47,7 @@ export default function JoinTrip({ onBack, onSuccess }) {
 
           <h2 className="jt-success-title">You're In!</h2>
           <p className="jt-success-sub">
-            Welcome, <strong>{userName}</strong>. You've joined the trip.
+            Welcome, <strong>{user?.username}</strong>. You've joined the trip.
           </p>
 
           <div className="jt-detail-card">

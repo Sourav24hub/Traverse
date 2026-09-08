@@ -3,10 +3,16 @@
  *
  * Uses the Gemini API (GEMINI_API_KEY from environment).
  * The model is asked to respond with strict JSON matching the spec §9.2 shape.
+ *
+ * All external Gemini calls are wrapped with a 20-second AbortSignal timeout
+ * so a hung API call never blocks the server indefinitely.
  */
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { ItineraryDay, ItineraryItem } from "../models/store.js";
 import { generateId } from "./idgen.js";
+
+/** Timeout (ms) for any single Gemini API call */
+const GEMINI_TIMEOUT_MS = 20_000;
 
 /**
  * Minimal structural type for the Gemini client — satisfied by both
@@ -32,6 +38,34 @@ export let getGeminiClient: () => GeminiClient = () => {
 /** Allow tests to inject a mock client factory */
 export function setGeminiClientFactory(factory: () => GeminiClient): void {
   getGeminiClient = factory;
+}
+
+/**
+ * Wraps a Gemini generateContent call with a timeout.
+ * Throws if the call exceeds GEMINI_TIMEOUT_MS.
+ */
+async function callWithTimeout(
+  model: ReturnType<GeminiClient["getGenerativeModel"]>,
+  prompt: string
+): Promise<{ response: { text(): string } }> {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), GEMINI_TIMEOUT_MS);
+
+  try {
+    // Note: the Google Generative AI SDK does not natively accept AbortSignal,
+    // so we race the promise against a rejection on abort.
+    const result = await Promise.race([
+      model.generateContent(prompt),
+      new Promise<never>((_, reject) => {
+        controller.signal.addEventListener("abort", () =>
+          reject(new Error(`Gemini API call timed out after ${GEMINI_TIMEOUT_MS}ms`))
+        );
+      }),
+    ]);
+    return result;
+  } finally {
+    clearTimeout(timer);
+  }
 }
 
 interface GenerateItineraryParams {
@@ -75,7 +109,7 @@ Do NOT include any text outside the JSON array.`;
 
   const genAI = getGeminiClient();
   const model = genAI.getGenerativeModel({ model: "gemini-3.6-flash" });
-  const result = await model.generateContent(systemPrompt);
+  const result = await callWithTimeout(model, systemPrompt);
   const text = result.response.text().trim();
 
   // Strip markdown fences if the model wrapped the JSON in ```json ... ```
@@ -138,7 +172,7 @@ Respond ONLY with a valid JSON object:
 
   const genAI = getGeminiClient();
   const model = genAI.getGenerativeModel({ model: "gemini-3.6-flash" });
-  const result = await model.generateContent(systemPrompt);
+  const result = await callWithTimeout(model, systemPrompt);
   const text = result.response.text().trim();
   const jsonText = text.replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/, "").trim();
 
@@ -195,7 +229,7 @@ Respond ONLY with a valid JSON object matching this structure (no markdown fence
 
   const genAI = getGeminiClient();
   const model = genAI.getGenerativeModel({ model: "gemini-3.6-flash" });
-  const result = await model.generateContent(systemPrompt);
+  const result = await callWithTimeout(model, systemPrompt);
   const text = result.response.text().trim();
 
   const jsonText = text.replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/, "").trim();
@@ -234,4 +268,3 @@ Respond ONLY with a valid JSON object matching this structure (no markdown fence
     reason: String(typedRaw.reason ?? "Itinerary updated."),
   };
 }
-

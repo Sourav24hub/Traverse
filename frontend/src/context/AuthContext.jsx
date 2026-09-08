@@ -36,8 +36,12 @@ export function AuthProvider({ children }) {
   }, []);
 
   const login = (userData) => {
-    setUser(userData);
-    sessionStorage.setItem(SESSION_KEY, JSON.stringify(userData));
+    // Standardize shape: if userData has nested user (from /login), flatten it.
+    const standardUser = userData.user 
+      ? { ...userData.user, accessToken: userData.accessToken }
+      : userData;
+    setUser(standardUser);
+    sessionStorage.setItem(SESSION_KEY, JSON.stringify(standardUser));
   };
 
   const logout = () => {

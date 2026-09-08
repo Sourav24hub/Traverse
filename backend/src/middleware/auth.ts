@@ -44,3 +44,16 @@ export async function optionalAuth(
   
   next();
 }
+
+/**
+ * Required Auth Middleware
+ * Must be placed AFTER optionalAuth (or used where optionalAuth is already global).
+ * Rejects requests with 401 if req.user is not populated.
+ */
+export function requireAuth(req: Request, res: Response, next: NextFunction): void {
+  if (!req.user) {
+    res.status(401).json({ error: { code: "UNAUTHORIZED", message: "Authentication required." } });
+    return;
+  }
+  next();
+}

@@ -67,6 +67,18 @@ const trips = new Map<string, Trip>();
 /** Keyed by roomCode → tripId (for fast join lookups) */
 const roomCodeIndex = new Map<string, string>();
 
+export interface Notification {
+  id: string;
+  userId: string;
+  tripId?: string;
+  type: string;
+  message: string;
+  read: boolean;
+  createdAt: string;
+}
+
+const userNotifications = new Map<string, Notification[]>();
+
 export const store = {
   save(trip: Trip): void {
     trips.set(trip.tripId, trip);
@@ -104,4 +116,35 @@ export const store = {
       trips.delete(tripId);
     }
   },
+
+  // --- Notifications ---
+  saveNotification(notification: Omit<Notification, "id" | "createdAt" | "read">): void {
+    const id = Math.random().toString(36).substring(2, 9);
+    const newNotif: Notification = {
+      ...notification,
+      id,
+      createdAt: new Date().toISOString(),
+      read: false
+    };
+    if (!userNotifications.has(notification.userId)) {
+      userNotifications.set(notification.userId, []);
+    }
+    userNotifications.get(notification.userId)!.push(newNotif);
+  },
+
+  getNotifications(userId: string, tripId?: string): Notification[] {
+    const notifs = userNotifications.get(userId) || [];
+    if (tripId) {
+      return notifs.filter(n => n.tripId === tripId || !n.tripId);
+    }
+    return notifs;
+  },
+
+  markNotificationRead(userId: string, notificationId: string): void {
+    const notifs = userNotifications.get(userId);
+    if (notifs) {
+      const n = notifs.find(n => n.id === notificationId);
+      if (n) n.read = true;
+    }
+  }
 };

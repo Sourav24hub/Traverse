@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { getUserTrips, deleteTrip } from '../api/mockApi';
+import { getUserTrips, deleteTrip } from '../api/tripApi';
 import { useAuth } from '../context/AuthContext';
 import './MyTrips.css';
 
@@ -12,7 +12,8 @@ export default function MyTrips({ onTripSelect }) {
   useEffect(() => {
     async function loadTrips() {
       if (!user) return;
-      const res = await getUserTrips(user.authUserId);
+      // Use user.id (Supabase UUID) — the canonical userId throughout the app
+      const res = await getUserTrips(user.id);
       if (res.ok) {
         setTrips(res.data.trips);
       } else {
@@ -27,7 +28,7 @@ export default function MyTrips({ onTripSelect }) {
     e.stopPropagation();
     if (!window.confirm("Are you sure you want to delete this trip completely? This cannot be undone.")) return;
 
-    const res = await deleteTrip(tripId, user.authUserId);
+    const res = await deleteTrip(tripId, user.id);
     if (res.ok) {
       setTrips(trips.filter(t => t.tripId !== tripId));
     } else {
@@ -44,21 +45,21 @@ export default function MyTrips({ onTripSelect }) {
       <h2 className="mt-title">My Trips</h2>
       <div className="mt-grid">
         {trips.map(trip => (
-          <div 
-            key={trip.tripId} 
+          <div
+            key={trip.tripId}
             className="mt-card"
-            onClick={() => onTripSelect({ 
-              tripId: trip.tripId, 
-              destination: trip.destination, 
+            onClick={() => onTripSelect({
+              tripId: trip.tripId,
+              destination: trip.destination,
               roomCode: trip.roomCode,
-              userId: user.authUserId 
+              userId: user.id,
             })}
           >
             <div className="mt-card-header">
               <span className="mt-dest">{trip.destination}</span>
               {trip.isAdmin && (
-                <button 
-                  className="mt-delete-btn" 
+                <button
+                  className="mt-delete-btn"
                   onClick={(e) => handleDelete(e, trip.tripId)}
                   title="Delete trip"
                 >
@@ -66,7 +67,7 @@ export default function MyTrips({ onTripSelect }) {
                 </button>
               )}
             </div>
-            
+
             <div className="mt-card-badges">
               <span className={`mt-badge ${trip.isAdmin ? 'mt-badge-admin' : 'mt-badge-joiner'}`}>
                 {trip.isAdmin ? 'Admin' : 'Joiner'}

@@ -1,6 +1,6 @@
 /**
  * Location API — real fetch() calls to /api/location
- * Same { ok, data } wrapper as mockApi.js / itineraryApi.js
+ * Same { ok, data } wrapper as tripApi.js / itineraryApi.js
  *
  * Backend contract (confirmed from backend/src/routes/location.ts):
  *

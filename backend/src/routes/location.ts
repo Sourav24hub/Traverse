@@ -2,6 +2,7 @@ import { Router } from "express";
 import { store, UserLocation } from "../models/store.js";
 import { sendError } from "../services/errors.js";
 import { haversineDistance } from "../services/haversine.js";
+import { fireDynamicNotification } from "../services/groq.js";
 
 const locationRouter = Router();
 
@@ -55,6 +56,17 @@ locationRouter.post("/update", (req, res) => {
         if (distance <= PROXIMITY_THRESHOLD_METERS) {
           item.completed = true;
           reached.push(item.itemId);
+
+          // Notify the user who reached it
+          fireDynamicNotification(userId, tripId, "location_reached_you", { placeName: item.name });
+
+          // Notify other group members
+          const username = trip.members[userId]?.userName || "A member";
+          Object.values(trip.members).forEach(member => {
+            if (member.userId !== userId) {
+              fireDynamicNotification(member.userId, tripId, "location_reached_other", { username, placeName: item.name });
+            }
+          });
         }
       }
     }
